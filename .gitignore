@@ -6,7 +6,10 @@
 .vscode/
 
 # Excecutable folder.
-.bin/
+bin/
+
+# Cmake build folder.
+build/
 
 ## User settings
 xcuserdata/
