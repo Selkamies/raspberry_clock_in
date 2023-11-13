@@ -1,4 +1,6 @@
 
+#include <stdbool.h>
+#include <pigpio.h>
 
 #include "keypad_gpio.h"
 

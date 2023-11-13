@@ -9,14 +9,16 @@
 
 
 
-struct CurrentPinCode currentPinState =
+/* Current state of the pin the user is trying to input, if any. */
+struct CurrentPinInput currentPinState =
 {
     .nextPressIndex = 0,
     .lastKeyPressTime = EMPTY_TIMESTAMP,
     .keyPresses = {EMPTY_KEY}  
 };
 
-struct KeyPad keyPadState
+/* Keys on the keypad and their state when previously checked. */
+struct KeyPad keyPadState =
 {
     .keys =
     {
@@ -70,10 +72,10 @@ void checkKeyPress(struct GPIOPins *gpioPins)
 
             if (keyNowPressed == 1 && !keyPadState.keysPressedPreviously[row][column])
             {
-                pressedKey = keys[row][column];
+                pressedKey = keyPadState.keys[row][column];
 
                 keyPadState.keysPressedPreviously[row][column] = true;
-                printf("Key %c was just pressed.\n", pressedKey)
+                printf("Key %c was just pressed.\n", pressedKey);
             }
 
             else if (!keyNowPressed)
@@ -92,7 +94,7 @@ void checkKeyPress(struct GPIOPins *gpioPins)
 void storeKeyPress(char key)
 {
     // Save the pressed key and record the time.
-    currentPinState.keyPresses[currentPinState.nextPressIndex].key = key;
+    currentPinState.keyPresses[currentPinState.nextPressIndex] = key;
     currentPinState.lastKeyPressTime = time(NULL);
 
     currentPinState.nextPressIndex++;
@@ -100,9 +102,9 @@ void storeKeyPress(char key)
     // If the next key press index would be at the pin length, 
     // we just received the last key for the pin code (by length).
     // Check the pin for validity and clear the saved pin.
-    if (currentPinState.nextPressIndex => MAX_PIN_LENGTH)
+    if (currentPinState.nextPressIndex >= MAX_PIN_LENGTH)
     {
-        if checkPin()
+        if (checkPin())
         {
             // TODO: Grant access.
         }
@@ -118,11 +120,27 @@ void clearKeys()
 
     for (int pinIndex = 0; pinIndex < MAX_PIN_LENGTH; pinIndex++)
     {
-        currentPinState.keyPresses[pinIndex].key = EMPTY_KEY;
+        currentPinState.keyPresses[pinIndex] = EMPTY_KEY;
     }
 }
 
 bool checkPin()
 {
     return false;
+}
+
+bool keypressTimeOut()
+{
+    time_t current_time = time(NULL);
+    double time_since_last_press = difftime(currentPinState.lastKeyPressTime, current_time);
+
+    if (time_since_last_press >= KEYPRESS_TIMEOUT)
+    {
+        return true;
+    }
+
+    else
+    {
+        return false;
+    }
 }
