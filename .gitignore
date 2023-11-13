@@ -5,6 +5,9 @@
 # .vscode folder and files.
 .vscode/
 
+# Excecutable folder.
+.bin/
+
 ## User settings
 xcuserdata/
 
