@@ -1,3 +1,27 @@
+/**
+ * @file keypad.c
+ * @author Selkamies
+ * 
+ * @brief Handles the input from a keypad attached to Raspberry Pi 4. 
+ * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.c.
+ * 
+ * @date Created  2023-11-13
+ * @date Modified 2023-11-14
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ * TODO: Prevent accepting multiple keypresses per check?
+ * TODO: Instead of clearing the PIN inputs, just keep last X keys and keep checking until success or timeout.
+ * TODO: Allow PINs of different lengths, some key in the keypad checks the pin.
+ * TODO: PINs of variable lengths. Starting from some minimum length check every key press? 
+ *       What is max length? Probably requires calloc()?
+ * TODO: Actually check the PINs from a database when it and the code handling it exists.
+ * TODO: KEYPAD_ROWS and KEYPAD_COLUMNS are also needed elsewhere (at least pins.h). 
+ *       Move them to their own file? What about other defines?
+ * TODO: Move the defines to other file(s) and change to extern consts, then read them from file?
+ */
+
+
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -33,9 +57,10 @@ struct KeyPad keyPadState =
 
 
 
-char checkKeyPress(struct GPIOPins *gpioPins)
+void checkKeyPress(struct GPIOPins *gpioPins)
 {
     char pressedKey = EMPTY_KEY;
+    //bool keyWasPressed = false;
 
     for (int row = 0; row < KEYPAD_ROWS; row++)
     {
@@ -48,6 +73,7 @@ char checkKeyPress(struct GPIOPins *gpioPins)
             // Row off and column off means the key in the intersection is pressed.
             bool keyNowPressed = isKeypadColumnOff(gpioPins->keypad_columns[column]);
 
+            // Key is pressed, but was not previously.
             if (keyNowPressed && !keyPadState.keysPressedPreviously[row][column])
             {
                 pressedKey = keyPadState.keys[row][column];
@@ -56,8 +82,10 @@ char checkKeyPress(struct GPIOPins *gpioPins)
                 //printf("Key %c was just pressed.\n", pressedKey);
 
                 storeKeyPress(pressedKey);
+                //keyWasPressed = true;
             }
 
+            // Key was pressed previously, but is not now.
             else if (!keyNowPressed && keyPadState.keysPressedPreviously[row][column])
             {
                 keyPadState.keysPressedPreviously[row][column] = false;
@@ -70,7 +98,7 @@ char checkKeyPress(struct GPIOPins *gpioPins)
         turnKeypadRowOn(gpioPins->keypad_rows[row]);
     }
 
-    return pressedKey;
+    //return pressedKey;
 }
 
 void storeKeyPress(char key)
@@ -90,7 +118,7 @@ void storeKeyPress(char key)
     {
         if (checkPin(currentPinState.keyPresses))
         {
-            // TODO: Database things.
+            // TODO: Do database things.
             printf("\nCORRECT PIN! - %s \n", currentPinState.keyPresses);
         }
 

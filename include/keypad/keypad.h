@@ -1,3 +1,18 @@
+/**
+ * @file keypad.h
+ * @author Selkamies
+ * 
+ * @brief Handles the input from a keypad attached to Raspberry Pi 4. 
+ * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.h.
+ * 
+ * @date Created  2023-11-13
+ * @date Modified 2023-11-14
+ * 
+ * @copyright Copyright (c) 2023
+ */
+
+
+
 #ifndef KEYPAD_H
 #define KEYPAD_H
 
@@ -59,7 +74,7 @@ struct KeyPad
  * 
  * @param gpioPins Struct holding the GPIO pin numbers.
  */
-char checkKeyPress(struct GPIOPins *gpioPins);
+void checkKeyPress(struct GPIOPins *gpioPins);
 
 /**
  * @brief Stores the pressed key to the current PIN under input.
