@@ -6,8 +6,6 @@
 #include <stdbool.h>
 #include <time.h>
 
-//#include "pins.h"
-
 
 
 /** @brief Maximum length of the PIN. */
@@ -75,6 +73,14 @@ void storeKeyPress(char key);
  */
 void clearKeys();
 
+/**
+ * @brief Checks the full PIN for validity. Currently mock checks.
+ * TODO: Check database for existing person that has the passed PIN.
+ * 
+ * @param pin_input The PIN to check.
+ * @return true If the PIN matches.
+ * @return false If the PIN doesn't have a match.
+ */
 bool checkPin(char *pin_input);
 
 /**
@@ -85,6 +91,10 @@ bool checkPin(char *pin_input);
  */
 bool keypressTimeOut();
 
+/**
+ * @brief Prints a 4x4 array of zeroes and ones represeting the keypad key status. 
+ * Ones marking a key in the keypad being currently pressed down.
+ */
 void printKeyStatus();
 
 
