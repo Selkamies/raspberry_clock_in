@@ -3,22 +3,18 @@
 
 
 
+#include "keypad.h"     // For KEYPAD_ROWS and COLUMNS. Move elsewhere?
+
+
+
 /**
  * @brief Maps the Raspberry Pi 4 GPIO pins.
  * TODO: Read these from a human-readable file, so that we don't need to recompile to change them.
  */
-struct GPIOPins 
+struct GPIOPins
 {
-    int keypad_row_1;
-    int keypad_row_2;
-    int keypad_row_3;
-    int keypad_row_4;
-    int keypad_column_1;
-    int keypad_column_2;
-    int keypad_column_3;
-    int keypad_column_4;
-    // TODO: RGP led pin.
-    // TODO: Buzzer pin?
+    int keypad_rows[KEYPAD_ROWS];
+    int keypad_columns[KEYPAD_COLUMNS];
 };
 
 

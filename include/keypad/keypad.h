@@ -6,6 +6,8 @@
 #include <stdbool.h>
 #include <time.h>
 
+//#include "pins.h"
+
 
 
 /** @brief Maximum length of the pin code. */
@@ -23,6 +25,9 @@
 #define EMPTY_TIMESTAMP 0
 
 
+
+// Forward declaration.
+struct GPIOPins;
 
 /**
  * @brief Struct holding data about the pin code the user is currently trying to input, if any.
@@ -56,7 +61,7 @@ struct KeyPad
  * 
  * @param gpioPins Struct holding the GPIO pin numbers.
  */
-void checkKeyPress(struct GPIOPins *gpioPins);
+char checkKeyPress(struct GPIOPins *gpioPins);
 
 /**
  * @brief Stores the pressed key to the current pin code under input.

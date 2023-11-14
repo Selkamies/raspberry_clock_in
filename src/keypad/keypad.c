@@ -1,9 +1,10 @@
 
 //#include <pigpio.h>
+#include <stdio.h>
 #include <stdbool.h>
 #include <time.h>
 
-//#include "pins.h"
+#include "pins.h"
 #include "keypad.h"
 #include "keypad_gpio.h"
 
@@ -32,31 +33,7 @@ struct KeyPad keyPadState =
 
 
 
-struct GPIOPins
-{
-    int keypad_rows[KEYPAD_ROWS];
-    int keypad_columns[KEYPAD_COLUMNS];
-};
-
-struct GPIOPins gpio_pins = 
-{
-    .keypad_rows[0] = 11,
-    .keypad_rows[1] = 9,
-    .keypad_rows[2] = 10,
-    .keypad_rows[3] = 22,
-    .keypad_columns[0] = 17,
-    .keypad_columns[1] = 4,
-    .keypad_columns[2] = 3,
-    .keypad_columns[3] = 2
-    // TODO: RGP led pin.
-    // TODO: Buzzer pin?
-};
-
-
-
-
-
-void checkKeyPress(struct GPIOPins *gpioPins)
+char checkKeyPress(struct GPIOPins *gpioPins)
 {
     char pressedKey = EMPTY_KEY;
 
@@ -85,7 +62,7 @@ void checkKeyPress(struct GPIOPins *gpioPins)
         }
 
         // Disable the current row to check the next one.
-        turnKeypadRowOn(row);
+        turnKeypadRowOff(row);
     }
 
     return pressedKey;
@@ -96,6 +73,8 @@ void storeKeyPress(char key)
     // Save the pressed key and record the time.
     currentPinState.keyPresses[currentPinState.nextPressIndex] = key;
     currentPinState.lastKeyPressTime = time(NULL);
+
+    printf("Index %d of pin code entered. Character %c.\n", currentPinState.nextPressIndex, key);
 
     currentPinState.nextPressIndex++;
 

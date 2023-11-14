@@ -3,7 +3,7 @@
 
 #include <signal.h>     // sig_atomic_t
 
-#include "pins.h"
+//#include "pins.h"
 
 /**
  * @brief Pigpio uses this to keep track if the pins are running?
@@ -20,10 +20,9 @@ void signalHandler(int signo);
 /**
  * @brief Initializes the pigpio connection.
  * 
- * @param gpio_pins Struct with the GPIO pin numbers.
  * @param mainLoop Function in main.c, that gets called if pigpio is initialized correctly.
  */
-void initializeGPIO(struct GPIOPins *gpio_pins, void (*mainLoop)(struct GPIOPins *));
+void initializeGPIO(void (*mainLoop)());
 
 
 
