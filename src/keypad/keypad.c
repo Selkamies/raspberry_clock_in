@@ -1,8 +1,8 @@
 
-//#include <pigpio.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include <time.h>
+#include <time.h>       // time_t and time.
+#include <string.h>     // strcmp()
 
 #include "pins.h"
 #include "keypad.h"
@@ -88,18 +88,19 @@ void storeKeyPress(char key)
     // Check the pin for validity and clear the saved pin.
     if (currentPinState.nextPressIndex >= MAX_PIN_LENGTH)
     {
-        if (checkPin())
+        if (checkPin(currentPinState.keyPresses))
         {
-            // TODO: Grant access.
+            // TODO: Database things.
             printf("\nCORRECT PIN! - %s \n", currentPinState.keyPresses);
         }
 
         else
         {
             printf("\nPIN REJECTED! - %s \n", currentPinState.keyPresses);
-            printf("\nPress enter to continue.\n");
-            getchar();
         }
+
+        printf("\nPress enter to continue.\n");
+        getchar();
 
         clearKeys();
     }
@@ -118,9 +119,18 @@ void clearKeys()
     }
 }
 
-bool checkPin()
+bool checkPin(char *pin_input)
 {
-    return false;
+    // TODO: Check if we find user with this PIN from database.
+    if (strcmp(pin_input, "123A") == 0)
+    {
+        return true;
+    }
+
+    else
+    {
+        return false;
+    }
 }
 
 bool keypressTimeOut()

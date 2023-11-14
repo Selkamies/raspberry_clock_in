@@ -75,7 +75,7 @@ void storeKeyPress(char key);
  */
 void clearKeys();
 
-bool checkPin();
+bool checkPin(char *pin_input);
 
 /**
  * @brief Checks if it has been too long since the last keypress.
