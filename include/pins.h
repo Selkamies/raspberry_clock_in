@@ -57,7 +57,14 @@ void cleanupGPIOPins(struct GPIOPins *gpio_pins) ;
  * 
  * @param gpio_pins Struct with the GPIO pin numbers.
  */
-void printGPIOPinNumbers(struct GPIOPins *gpio_pins);
+//void printGPIOPinNumbers(struct GPIOPins *gpio_pins);
+
+/**
+ * @brief Prints the status of GPIO pins.
+ * 
+ * @param gpio_pins Struct with the GPIO pin numbers.
+ */
+void printGPIOPinStatus(struct GPIOPins *gpio_pins);
 
 
 

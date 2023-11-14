@@ -39,15 +39,15 @@ char checkKeyPress(struct GPIOPins *gpioPins)
 
     for (int row = 0; row < KEYPAD_ROWS; row++)
     {
-        // Enable the current row to check if any key in this row is pressed.
-        turnKeypadRowOn(row);
+        // Disable the current row to check if any key in this row is pressed.
+        turnKeypadRowOff(gpioPins->keypad_rows[row]);
 
         // Check every column pin to see if a key in this row is pressed.
         for (int column = 0; column < KEYPAD_COLUMNS; column++)
         {
-            bool keyNowPressed = isKeypadColumnOn(column);
+            bool keyNowPressed = isKeypadColumnOff(gpioPins->keypad_columns[column]);
 
-            if (keyNowPressed == 1 && !keyPadState.keysPressedPreviously[row][column])
+            if (keyNowPressed && !keyPadState.keysPressedPreviously[row][column])
             {
                 pressedKey = keyPadState.keys[row][column];
 
@@ -61,8 +61,8 @@ char checkKeyPress(struct GPIOPins *gpioPins)
             }
         }
 
-        // Disable the current row to check the next one.
-        turnKeypadRowOff(row);
+        // Enable the current row to check the next one.
+        turnKeypadRowOn(gpioPins->keypad_rows[row]);
     }
 
     return pressedKey;
@@ -121,5 +121,18 @@ bool keypressTimeOut()
     else
     {
         return false;
+    }
+}
+
+
+
+void printKeyStatus()
+{
+    printf("\nKeys:\n");
+
+    for (int row = 0; row < KEYPAD_ROWS; row++)
+    {
+        printf("%d %d %d %d\n", keyPadState.keysPressedPreviously[row][0], keyPadState.keysPressedPreviously[row][1], 
+                                keyPadState.keysPressedPreviously[row][2], keyPadState.keysPressedPreviously[row][3]);
     }
 }

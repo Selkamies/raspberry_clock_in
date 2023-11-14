@@ -16,15 +16,15 @@ void turnKeypadRowOff(int keypadRowPin)
     gpioWrite(keypadRowPin, 0);
 }
 
-bool isKeypadColumnOn(int keypadColumnPin)
+bool isKeypadColumnOff(int keypadColumnPin)
 {
     if (gpioRead(keypadColumnPin))
     {
-        return true;
+        return false;
     }
 
     else
     {
-        return false;
+        return true;
     }
 }

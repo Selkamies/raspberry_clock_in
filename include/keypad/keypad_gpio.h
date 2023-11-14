@@ -18,13 +18,15 @@ void turnKeypadRowOn(int keypadRowPin);
 void turnKeypadRowOff(int keypadRowPin);
 
 /**
- * @brief Checks if the GPIO pin for the keypad column is on.
+ * @brief Checks if the keypad column is off, meaning that a key is pressed in the column 
+ * if the corresponding keypad row is off.
+ * TODO: The logic seems reversed to me, change name or fix otherwise?
  * 
- * @param keypadColumnPin The pin number for the GPIO pin.
- * @return true If the keypad column is on.
- * @return false If the keypad column is off.
+ * @param keypadColumnPin GPIO pin number representing the keypad column.
+ * @return true If gpioRead(keypadColumnPin) = 0.
+ * @return false If gpioRead(keypadColumnPin) = 1.
  */
-bool isKeypadColumnOn(int keypadColumnPin);
+bool isKeypadColumnOff(int keypadColumnPin);
 
 
 

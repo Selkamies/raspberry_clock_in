@@ -85,6 +85,8 @@ bool checkPin();
  */
 bool keypressTimeOut();
 
+void printKeyStatus();
+
 
 
 #endif // KEYPAD_H

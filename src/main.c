@@ -16,7 +16,10 @@ void mainLoop()
 
     while (!signal_received) 
     {
+        printKeyStatus();
         checkKeyPress(&gpio_pins);
+
+        //printGPIOPinStatus(&gpio_pins);
 
         time_sleep(1);
     }

@@ -10,7 +10,7 @@
 struct GPIOPins createGPIOPins() 
 {
     struct GPIOPins gpio_pins = readGPIOPinsFromFile("Dummy file name");
-    //initializeGPIOPins(&gpio_pins);
+    initializeGPIOPins(&gpio_pins);
 
     return gpio_pins;
 }
@@ -43,35 +43,31 @@ struct GPIOPins readGPIOPinsFromFile(const char *filename)
 
 void initializeGPIOPins(struct GPIOPins *gpio_pins)
 {
-    gpioSetMode(gpio_pins->keypad_rows[0], PI_OUTPUT);
-    gpioSetMode(gpio_pins->keypad_rows[1], PI_OUTPUT);
-    gpioSetMode(gpio_pins->keypad_rows[2], PI_OUTPUT);
-    gpioSetMode(gpio_pins->keypad_rows[3], PI_OUTPUT);
+    printf("Initializing GPIO pins.\n");
 
-    gpioSetMode(gpio_pins->keypad_columns[0], PI_INPUT);
-    gpioSetMode(gpio_pins->keypad_columns[1], PI_INPUT);
-    gpioSetMode(gpio_pins->keypad_columns[2], PI_INPUT);
-    gpioSetMode(gpio_pins->keypad_columns[3], PI_INPUT);
+    for (int index = 0; index < 4; index++)
+    {
+        gpioSetMode(gpio_pins->keypad_rows[index], PI_OUTPUT);
+        gpioSetMode(gpio_pins->keypad_columns[index], PI_INPUT);
+        gpioSetPullUpDown(gpio_pins->keypad_rows[index], PI_PUD_DOWN);
+        gpioSetPullUpDown(gpio_pins->keypad_columns[index], PI_PUD_UP);
+    }
 }
 
 void cleanupGPIOPins(struct GPIOPins *gpio_pins) 
 {
     printf("Resetting GPIO pins.\n");
 
-    gpioSetMode(gpio_pins->keypad_rows[0], PI_INPUT);
-    gpioSetMode(gpio_pins->keypad_rows[1], PI_INPUT);
-    gpioSetMode(gpio_pins->keypad_rows[2], PI_INPUT);
-    gpioSetMode(gpio_pins->keypad_rows[3], PI_INPUT);
-
-    gpioSetMode(gpio_pins->keypad_columns[0], PI_INPUT);
-    gpioSetMode(gpio_pins->keypad_columns[1], PI_INPUT);
-    gpioSetMode(gpio_pins->keypad_columns[2], PI_INPUT);
-    gpioSetMode(gpio_pins->keypad_columns[3], PI_INPUT);
+    for (int index = 0; index < 4; index++)
+    {
+        gpioSetMode(gpio_pins->keypad_rows[index], PI_INPUT);
+        gpioSetMode(gpio_pins->keypad_columns[index], PI_INPUT);
+    }
 }
 
 
 
-void printGPIOPinNumbers(struct GPIOPins *gpio_pins)
+/* void printGPIOPinNumbers(struct GPIOPins *gpio_pins)
 {
     printf("GPIO pin numbers:\n");
     printf("Keypad row 1: %d\n", gpio_pins->keypad_rows[0]);
@@ -83,6 +79,24 @@ void printGPIOPinNumbers(struct GPIOPins *gpio_pins)
     printf("Keypad column 2: %d\n", gpio_pins->keypad_columns[1]);
     printf("Keypad column 3: %d\n", gpio_pins->keypad_columns[2]);
     printf("Keypad column 4: %d\n", gpio_pins->keypad_columns[3]);
+} */
+
+void printGPIOPinStatus(struct GPIOPins *gpio_pins)
+{
+    printf("\nGPIO pin status:\n");
+    printf("%-15s%-5s%-10s%-5s%-5s\n", "Row/Column", "Idx", "Pin Number", "Mode", "Value");
+
+    for (int row = 0; row < 4; row++)
+    {
+        int pin_number = gpio_pins->keypad_rows[row];
+        printf("%-15s%-5d%-10d%-5d%-5d\n", "Keypad row", row, pin_number, gpioGetMode(pin_number), gpioRead(pin_number));
+    }
+
+    for (int column = 0; column < 4; column++)
+    {
+        int pin_number = gpio_pins->keypad_columns[column];
+        printf("%-15s%-5d%-10d%-5d%-5d\n", "Keypad column", column, pin_number, gpioGetMode(pin_number), gpioRead(pin_number));
+    }
 }
 
 
