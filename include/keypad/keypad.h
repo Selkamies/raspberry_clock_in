@@ -10,9 +10,9 @@
 
 
 
-/** @brief Maximum length of the pin code. */
+/** @brief Maximum length of the PIN. */
 #define MAX_PIN_LENGTH 4
-/** @brief Time in seconds after the last keypress, after which the program stops waiting and resets the pin. */
+/** @brief Time in seconds after the last keypress, after which the program stops waiting and resets the PIN. */
 #define KEYPRESS_TIMEOUT 10
 /** @brief Number of rows in the keypad. */
 #define KEYPAD_ROWS 4
@@ -30,15 +30,15 @@
 struct GPIOPins;
 
 /**
- * @brief Struct holding data about the pin code the user is currently trying to input, if any.
+ * @brief Struct holding data about the PIN the user is currently trying to input, if any.
  */
 struct CurrentPinInput
 {
-    /** @brief Index for the next free char in the array holding the pin code being entered. */
+    /** @brief Index for the next free char in the array holding the PIN being entered. */
     int nextPressIndex;
     /** @brief Time since the last key was pressed. */
     time_t lastKeyPressTime;
-    /** @brief Array holding the pin code being entered. */
+    /** @brief Array holding the PIN being entered. */
     char keyPresses[MAX_PIN_LENGTH];
 };
 
@@ -64,14 +64,14 @@ struct KeyPad
 char checkKeyPress(struct GPIOPins *gpioPins);
 
 /**
- * @brief Stores the pressed key to the current pin code under input.
+ * @brief Stores the pressed key to the current PIN under input.
  * 
  * @param key Key to save.
  */
 void storeKeyPress(char key);
 
 /**
- * @brief Resets the currently input pin code.
+ * @brief Resets the currently input PIN.
  */
 void clearKeys();
 

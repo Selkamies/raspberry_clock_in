@@ -12,16 +12,16 @@ void mainLoop()
 {
     struct GPIOPins gpio_pins = createGPIOPins();
 
-    printf("\nMain loop starting.\n");
+    printf("\nMain loop starting. You may now input PIN.\n");
 
     while (!signal_received) 
     {
-        printKeyStatus();
+        //printKeyStatus();
         checkKeyPress(&gpio_pins);
 
         //printGPIOPinStatus(&gpio_pins);
 
-        time_sleep(1);
+        time_sleep(0.01);
     }
 
     cleanupGPIOPins(&gpio_pins);

@@ -45,19 +45,24 @@ char checkKeyPress(struct GPIOPins *gpioPins)
         // Check every column pin to see if a key in this row is pressed.
         for (int column = 0; column < KEYPAD_COLUMNS; column++)
         {
+            // Row off and column off means the key in the intersection is pressed.
             bool keyNowPressed = isKeypadColumnOff(gpioPins->keypad_columns[column]);
 
             if (keyNowPressed && !keyPadState.keysPressedPreviously[row][column])
             {
                 pressedKey = keyPadState.keys[row][column];
-
                 keyPadState.keysPressedPreviously[row][column] = true;
-                printf("Key %c was just pressed.\n", pressedKey);
+
+                //printf("Key %c was just pressed.\n", pressedKey);
+
+                storeKeyPress(pressedKey);
             }
 
-            else if (!keyNowPressed)
+            else if (!keyNowPressed && keyPadState.keysPressedPreviously[row][column])
             {
                 keyPadState.keysPressedPreviously[row][column] = false;
+                //pressedKey = keyPadState.keys[row][column];
+                //printf("Key %c was just released.\n", pressedKey);
             }
         }
 
@@ -74,18 +79,26 @@ void storeKeyPress(char key)
     currentPinState.keyPresses[currentPinState.nextPressIndex] = key;
     currentPinState.lastKeyPressTime = time(NULL);
 
-    printf("Index %d of pin code entered. Character %c.\n", currentPinState.nextPressIndex, key);
+    printf("Index %d of PIN entered. Character %c.\n", currentPinState.nextPressIndex, key);
 
     currentPinState.nextPressIndex++;
 
     // If the next key press index would be at the pin length, 
-    // we just received the last key for the pin code (by length).
+    // we just received the last key for the PIN (by length).
     // Check the pin for validity and clear the saved pin.
     if (currentPinState.nextPressIndex >= MAX_PIN_LENGTH)
     {
         if (checkPin())
         {
             // TODO: Grant access.
+            printf("\nCORRECT PIN! - %s \n", currentPinState.keyPresses);
+        }
+
+        else
+        {
+            printf("\nPIN REJECTED! - %s \n", currentPinState.keyPresses);
+            printf("\nPress enter to continue.\n");
+            getchar();
         }
 
         clearKeys();
@@ -94,6 +107,8 @@ void storeKeyPress(char key)
 
 void clearKeys()
 {
+    printf("PIN cleared. You may now enter another PIN.\n");
+
     currentPinState.lastKeyPressTime = EMPTY_TIMESTAMP;
     currentPinState.nextPressIndex = 0;
 
