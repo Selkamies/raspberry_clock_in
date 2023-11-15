@@ -21,17 +21,6 @@
 #include <stdbool.h>
 #include <time.h>
 
-//#include "config.h"
-
-
-
-// TODO: Stop using these, use the values in .config. 
-// Requires changing currentPinState.keyPresses, keypadState.keyPresses and keypadState..keysPressedPreviously
-// to use calloc instead of these defines.
-#define MAX_PIN_LENGTH 4
-#define KEYPAD_ROWS 4
-#define KEYPAD_COLUMNS 4
-
 
 
 /** @brief Default value used for empty characters when no character is received or set. */
@@ -54,22 +43,19 @@ struct CurrentPinInput
     /** @brief Time since the last key was pressed. */
     time_t lastKeyPressTime;
     /** @brief Array holding the PIN being entered. */
-    //char *keyPresses;
-    char keyPresses[MAX_PIN_LENGTH];
+    char *keyPresses;
 };
 
 /**
  * @brief Struct holding the keys on the keypad and the previous state of the keypad keys.
  */
-struct KeyPad
+struct Keypad
 {
     /** @brief Holds the keys in the keypad, in the corresponding positions. */
-    //char *keys;
-    char keys[KEYPAD_ROWS][KEYPAD_COLUMNS];
+    char **keys;
     /** @brief State of keys (pressed or not) during previous check. 
      * Used to check for changes, so that we only register button press once. */
-    //bool *keysPressedPreviously;
-    bool keysPressedPreviously[KEYPAD_ROWS][KEYPAD_COLUMNS];
+    bool **keysPressedPreviously;
 };
 
 
@@ -116,6 +102,18 @@ bool keypressTimeOut();
  * Ones marking a key in the keypad being currently pressed down.
  */
 void printKeyStatus();
+
+
+
+/**
+ * @brief Initializes all arrays used by keypad requiring malloc/calloc.
+ */
+void initializeKeypad();
+
+/**
+ * @brief Frees all arrays used by keypad requiring malloc/calloc.
+ */
+void freeKeypad();
 
 
 

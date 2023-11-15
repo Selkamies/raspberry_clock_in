@@ -42,7 +42,7 @@ void mainLoop()
 
         //printGPIOPinStatus(&gpio_pins);
 
-        time_sleep(0.01);
+        time_sleep(0.1);
     }
 
     cleanupGPIOPins(&gpio_pins);
@@ -57,12 +57,15 @@ int main()
     printf("\nLoading config.ini.\n");
     readConfigFile();
 
-    //printf("\nInitializing keypad.\n");
+    printf("\nInitializing keypad.\n");
+    initializeKeypad();
 
     printf("\nInitializing pigpio.\n");
 
     // Initialized pigpio connection to the GPIO pins and starts the main loop.
     initializeGPIO(mainLoop);
+
+    freeKeypad();
 
     return 0;
 }

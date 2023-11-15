@@ -30,22 +30,24 @@
 
 void setConfigValue(char *key, char *value)
 {
-    if (strcmp(key, "MAX_PIN_LENGTH") == 0)
+    //printf("\nconfig_handler.setConfigValue: Key: '%s': '%d', value: '%s', atoi(value): '%d'.", key, config.KEYPAD_ROWS, value, atoi(value));
+
+    if (strcmp(key, "MAX_PIN_LENGTH ") == 0)
     {
         config.MAX_PIN_LENGTH = atoi(value);
     }
 
-    else if (strcmp(key, "KEYPRESS_TIMEOUT") == 0)
+    else if (strcmp(key, "KEYPRESS_TIMEOUT ") == 0)
     {
         config.KEYPRESS_TIMEOUT = atoi(value);
     }
 
-    else if (strcmp(key, "KEYPAD_ROWS") == 0)
+    else if (strcmp(key, "KEYPAD_ROWS ") == 0)
     {
         config.KEYPAD_ROWS = atoi(value);
     }
 
-    else if (strcmp(key, "KEYPAD_COLUMNS") == 0)
+    else if (strcmp(key, "KEYPAD_COLUMNS ") == 0)
     {
         config.KEYPAD_COLUMNS = atoi(value);
     }
@@ -77,9 +79,10 @@ void readConfigFile()
         // sscanf parses data from a string. 
         // It tries to find max length 100 of key part, =, and then max 100 length value part and a linebreak.
         // Then it assings the values to the keyValuePair.
+        // TODO: Key gets an extra space at the end. Strip both key and value?
         if (sscanf(line, " %100[^=]=%100[^\n]", keyValuePair.key, keyValuePair.value) == 2) 
         {
-            printf("Key: %s, Value: %s\n", keyValuePair.key, keyValuePair.value);
+            //printf("Key: %s, Value: %s\n", keyValuePair.key, keyValuePair.value);
             
             // Save the values to config struct.
             setConfigValue(keyValuePair.key, keyValuePair.value);

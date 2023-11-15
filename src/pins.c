@@ -93,6 +93,8 @@ void cleanupGPIOPins(struct GPIOPins *gpio_pins)
 
     free(gpio_pins->keypad_rows);
     free(gpio_pins->keypad_columns);
+    gpio_pins->keypad_rows = NULL;
+    gpio_pins->keypad_columns = NULL;
 }
 
 
