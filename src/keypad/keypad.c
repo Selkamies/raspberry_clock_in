@@ -11,8 +11,10 @@
  * @copyright Copyright (c) 2023
  * 
  * TODO: Prevent accepting multiple keypresses per check?
- * TODO: Instead of clearing the PIN inputs, just keep last X keys and keep checking until success or timeout.
+ * TODO: Play sound with correct/incorrect pin.
+ * TODO: Turn led on for a bit with correct/incorrect pin.
  * TODO: Allow PINs of different lengths, some key in the keypad checks the pin.
+ * TODO: Instead of clearing the PIN inputs, just keep last X keys and keep checking until success or timeout?
  * TODO: PINs of variable lengths. Starting from some minimum length check every key press? 
  *       What is max length? Probably requires calloc()?
  * TODO: Actually check the PINs from a database when it and the code handling it exists.

@@ -9,8 +9,9 @@
  * 
  * @copyright Copyright (c) 2023
  * 
- * TODO: Use inih?
- * TODO: More config values, possibly separated to different structs.
+ * TODO: Use inih. Strip keys and values from beginning and end.
+ * TODO: Read keypad pin numbers from file.
+ * TODO: Read keypad keys from file.
  * TODO: Any way to reduce hardcoded strings? 
  *       " %100[^=]=%100[^\n]" should replace 100 with MAX_LINE_LENGTH.
  *       setConfigValue uses hardcoded comparisons. Any way to just compare the key and struct members?
