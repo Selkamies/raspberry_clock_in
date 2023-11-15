@@ -6,7 +6,7 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.h.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-14
+ * @date Modified 2023-11-15
  * 
  * @copyright Copyright (c) 2023
  */
@@ -21,16 +21,18 @@
 #include <stdbool.h>
 #include <time.h>
 
+//#include "config.h"
 
 
-/** @brief Maximum length of the PIN. */
+
+// TODO: Stop using these, use the values in .config. 
+// Requires changing currentPinState.keyPresses, keypadState.keyPresses and keypadState..keysPressedPreviously
+// to use calloc instead of these defines.
 #define MAX_PIN_LENGTH 4
-/** @brief Time in seconds after the last keypress, after which the program stops waiting and resets the PIN. */
-#define KEYPRESS_TIMEOUT 10
-/** @brief Number of rows in the keypad. */
 #define KEYPAD_ROWS 4
-/** @brief Number of columns in the keypad. */
 #define KEYPAD_COLUMNS 4
+
+
 
 /** @brief Default value used for empty characters when no character is received or set. */
 #define EMPTY_KEY '\0'
@@ -52,6 +54,7 @@ struct CurrentPinInput
     /** @brief Time since the last key was pressed. */
     time_t lastKeyPressTime;
     /** @brief Array holding the PIN being entered. */
+    //char *keyPresses;
     char keyPresses[MAX_PIN_LENGTH];
 };
 
@@ -61,9 +64,11 @@ struct CurrentPinInput
 struct KeyPad
 {
     /** @brief Holds the keys in the keypad, in the corresponding positions. */
+    //char *keys;
     char keys[KEYPAD_ROWS][KEYPAD_COLUMNS];
     /** @brief State of keys (pressed or not) during previous check. 
      * Used to check for changes, so that we only register button press once. */
+    //bool *keysPressedPreviously;
     bool keysPressedPreviously[KEYPAD_ROWS][KEYPAD_COLUMNS];
 };
 

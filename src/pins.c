@@ -1,8 +1,27 @@
+/**
+ * @file pins.c
+ * @author Selkamies
+ * 
+ * @brief Handles the mapping of GPIO pins to pin numbers, and has functions for 
+ * initializing and resetting their status.
+ * 
+ * @date Created 2023-11-13
+ * @date Modified 2023-11-15
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ * TODO: Read the pin numbers from file so that we don't have to recompile if we change pins.
+ * TODO: Separate pin data and pigpio calls to their own files?
+ */
+
+
 
 #include <stdio.h>
+#include <stdlib.h>     // calloc()
 #include <pigpio.h>
 
 #include "pins.h"
+#include "config.h"
 
 
 
@@ -22,19 +41,27 @@ struct GPIOPins createGPIOPins()
 // TODO: Actually read the pin numbers from file.
 struct GPIOPins readGPIOPinsFromFile(const char *filename)
 {
-    struct GPIOPins dummy_gpio_pins = 
+    struct GPIOPins dummy_gpio_pins;
+
+    dummy_gpio_pins.keypad_rows = calloc(config.KEYPAD_ROWS, sizeof(int));
+    dummy_gpio_pins.keypad_columns = calloc(config.KEYPAD_COLUMNS, sizeof(int));
+
+    if (dummy_gpio_pins.keypad_rows == NULL || dummy_gpio_pins.keypad_columns == NULL) 
     {
-        .keypad_rows[0] = 11,
-        .keypad_rows[1] = 9,
-        .keypad_rows[2] = 10,
-        .keypad_rows[3] = 22,
-        .keypad_columns[0] = 17,
-        .keypad_columns[1] = 4,
-        .keypad_columns[2] = 3,
-        .keypad_columns[3] = 2
-        // TODO: RGP led pin.
-        // TODO: Buzzer pin?
-    };
+        printf("\nERROR: Memory allocation failure in pins.c, readGPIOPinsFromFile()!\n");
+    }
+
+    dummy_gpio_pins.keypad_rows[0] = 11;
+    dummy_gpio_pins.keypad_rows[1] = 9;
+    dummy_gpio_pins.keypad_rows[2] = 10;
+    dummy_gpio_pins.keypad_rows[3] = 22;
+    dummy_gpio_pins.keypad_columns[0] = 17;
+    dummy_gpio_pins.keypad_columns[1] = 4;
+    dummy_gpio_pins.keypad_columns[2] = 3;
+    dummy_gpio_pins.keypad_columns[3] = 2;
+    // TODO: RGP led pin.
+    // TODO: Buzzer pin?
+    
 
     return dummy_gpio_pins;
 }
@@ -63,23 +90,12 @@ void cleanupGPIOPins(struct GPIOPins *gpio_pins)
         gpioSetMode(gpio_pins->keypad_rows[index], PI_INPUT);
         gpioSetMode(gpio_pins->keypad_columns[index], PI_INPUT);
     }
+
+    free(gpio_pins->keypad_rows);
+    free(gpio_pins->keypad_columns);
 }
 
 
-
-/* void printGPIOPinNumbers(struct GPIOPins *gpio_pins)
-{
-    printf("GPIO pin numbers:\n");
-    printf("Keypad row 1: %d\n", gpio_pins->keypad_rows[0]);
-    printf("Keypad row 2: %d\n", gpio_pins->keypad_rows[1]);
-    printf("Keypad row 3: %d\n", gpio_pins->keypad_rows[2]);
-    printf("Keypad row 4: %d\n", gpio_pins->keypad_rows[3]);
-
-    printf("Keypad column 1: %d\n", gpio_pins->keypad_columns[0]);
-    printf("Keypad column 2: %d\n", gpio_pins->keypad_columns[1]);
-    printf("Keypad column 3: %d\n", gpio_pins->keypad_columns[2]);
-    printf("Keypad column 4: %d\n", gpio_pins->keypad_columns[3]);
-} */
 
 void printGPIOPinStatus(struct GPIOPins *gpio_pins)
 {

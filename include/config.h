@@ -5,6 +5,7 @@
  * @brief Holds global config values in a struct. The values are read from config.ini in config_handler.c.
  * 
  * @date Created 2023-11-14
+ * @date Modified 2023-11-15
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -15,6 +16,9 @@
 
 
 
+/**
+ * @brief Struct that holds config variables.
+ */
 struct Config
 {
     int MAX_PIN_LENGTH;
@@ -23,16 +27,8 @@ struct Config
     int KEYPAD_COLUMNS;
 };
 
-extern const Config config;
-
-/** @brief Maximum length of the PIN. */
-//extern const int MAX_PIN_LENGTH;
-/** @brief Time in seconds after the last keypress, after which the program stops waiting and resets the PIN. */
-//extern const int KEYPRESS_TIMEOUT;
-/** @brief Number of rows in the keypad. */
-//extern const int KEYPAD_ROWS;
-/** @brief Number of columns in the keypad. */
-//extern const int KEYPAD_COLUMNS;
+/** @brief Struct that holds config variables. */
+extern struct Config config;
 
 
 

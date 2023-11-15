@@ -5,37 +5,30 @@
  * @brief Reads values from config.ini and sets them in a config struct in config.h.
  * 
  * @date Created 2023-11-14
+ * @date Modified 2023-11-15
  * 
  * @copyright Copyright (c) 2023
  * 
  * TODO: Use inih?
  * TODO: More config values, possibly separated to different structs.
+ * TODO: Any way to reduce hardcoded strings? 
+ *       " %100[^=]=%100[^\n]" should replace 100 with MAX_LINE_LENGTH.
+ *       setConfigValue uses hardcoded comparisons. Any way to just compare the key and struct members?
+ * TODO: Look for config.ini in a few places. First in the same folder, then under config folder?
  */
+
 
 
 #include <stdio.h>
 #include <stdlib.h>     // atoi() for converting string to int.
 #include <string.h>     // strcmp()
 
+#include "config_handler.h"
 #include "config.h"
 
 
 
-#define MAX_KEY_LENGTH 50
-#define MAX_VALUE_LENGTH 50
-#define MAX_LINE_LENGTH 100
-
-
-
-struct KeyValuePair
-{
-    char key[MAX_KEY_LENGTH];
-    char value[MAX_VALUE_LENGTH];
-};
-
-
-
-void setConfigValue(char key, char value)
+void setConfigValue(char *key, char *value)
 {
     if (strcmp(key, "MAX_PIN_LENGTH") == 0)
     {
@@ -60,7 +53,8 @@ void setConfigValue(char key, char value)
 
 void readConfigFile()
 {
-    char *fileName = "config.ini";
+    //char *fileName = "config.ini";
+    char *fileName = "../config/config.ini";
 
     FILE *file = fopen(fileName, "r");
     if (!file) 

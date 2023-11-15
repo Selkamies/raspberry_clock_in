@@ -6,7 +6,7 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.c.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-14
+ * @date Modified 2023-11-15
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -28,6 +28,7 @@
 #include <time.h>       // time_t and time.
 #include <string.h>     // strcmp()
 
+#include "config.h"
 #include "pins.h"
 #include "keypad.h"
 #include "keypad_gpio.h"
@@ -43,7 +44,8 @@ struct CurrentPinInput currentPinState =
 };
 
 /* Keys on the keypad and their state when previously checked. */
-struct KeyPad keyPadState =
+//struct Keypad keypadState;
+struct KeyPad keypadState =
 {
     .keys =
     {
@@ -74,10 +76,10 @@ void checkKeyPress(struct GPIOPins *gpioPins)
             bool keyNowPressed = isKeypadColumnOff(gpioPins->keypad_columns[column]);
 
             // Key is pressed, but was not previously.
-            if (keyNowPressed && !keyPadState.keysPressedPreviously[row][column])
+            if (keyNowPressed && !keypadState.keysPressedPreviously[row][column])
             {
-                pressedKey = keyPadState.keys[row][column];
-                keyPadState.keysPressedPreviously[row][column] = true;
+                pressedKey = keypadState.keys[row][column];
+                keypadState.keysPressedPreviously[row][column] = true;
 
                 //printf("Key %c was just pressed.\n", pressedKey);
 
@@ -86,10 +88,10 @@ void checkKeyPress(struct GPIOPins *gpioPins)
             }
 
             // Key was pressed previously, but is not now.
-            else if (!keyNowPressed && keyPadState.keysPressedPreviously[row][column])
+            else if (!keyNowPressed && keypadState.keysPressedPreviously[row][column])
             {
-                keyPadState.keysPressedPreviously[row][column] = false;
-                //pressedKey = keyPadState.keys[row][column];
+                keypadState.keysPressedPreviously[row][column] = false;
+                //pressedKey = keypadState.keys[row][column];
                 //printf("Key %c was just released.\n", pressedKey);
             }
         }
@@ -166,7 +168,7 @@ bool keypressTimeOut()
     time_t current_time = time(NULL);
     double time_since_last_press = difftime(currentPinState.lastKeyPressTime, current_time);
 
-    if (time_since_last_press >= KEYPRESS_TIMEOUT)
+    if (time_since_last_press >= config.KEYPRESS_TIMEOUT)
     {
         return true;
     }
@@ -185,7 +187,7 @@ void printKeyStatus()
 
     for (int row = 0; row < KEYPAD_ROWS; row++)
     {
-        printf("%d %d %d %d\n", keyPadState.keysPressedPreviously[row][0], keyPadState.keysPressedPreviously[row][1], 
-                                keyPadState.keysPressedPreviously[row][2], keyPadState.keysPressedPreviously[row][3]);
+        printf("%d %d %d %d\n", keypadState.keysPressedPreviously[row][0], keypadState.keysPressedPreviously[row][1], 
+                                keypadState.keysPressedPreviously[row][2], keypadState.keysPressedPreviously[row][3]);
     }
 }

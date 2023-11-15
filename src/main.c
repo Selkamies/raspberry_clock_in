@@ -7,7 +7,7 @@
  * they were already marked as present or not. Users and logs are stored in a database.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-14
+ * @date Modified 2023-11-15
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -19,11 +19,12 @@
 
 
 #include <stdio.h>
-#include <pigpio.h>         // time_sleep()
+#include <pigpio.h>             // time_sleep()
 
-#include "gpio_handler.h"   // GPIO initialization.
-#include "pins.h"           // Mapping GPIO pin numbers.
-#include "keypad.h"         // Input handling.
+#include "config_handler.h"     // Load config from config.ini.
+#include "gpio_handler.h"       // GPIO initialization.
+#include "pins.h"               // Mapping GPIO pin numbers.
+#include "keypad.h"             // Input handling.
 
 
 
@@ -52,6 +53,11 @@ void mainLoop()
 int main()
 {
     printf("\nProgram starting.\n");
+
+    printf("\nLoading config.ini.\n");
+    readConfigFile();
+
+    //printf("\nInitializing keypad.\n");
 
     printf("\nInitializing pigpio.\n");
 

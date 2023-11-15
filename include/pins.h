@@ -1,20 +1,33 @@
+/**
+ * @file pins.h
+ * @author Selkamies
+ * 
+ * @brief Handles the mapping of GPIO pins to pin numbers, and has functions for 
+ * initializing and resetting their status.
+ * 
+ * @date Created 2023-11-13
+ * @date Modified 2023-11-15
+ * 
+ * @copyright Copyright (c) 2023
+ */
+
+
+
 #ifndef PINS_H
 #define PINS_H
 
 
 
-#include "keypad.h"     // For KEYPAD_ROWS and COLUMNS. Move elsewhere?
-
-
-
 /**
- * @brief Maps the Raspberry Pi 4 GPIO pins.
- * TODO: Read these from a human-readable file, so that we don't need to recompile to change them.
+ * @brief Struct holding the pin numbers for all Raspberry Pi 4 GPIO pins used by the program.
+ * TODO: Read the pin numbers from file, so we don't have to recompile if we change pins.
  */
 struct GPIOPins
 {
-    int keypad_rows[KEYPAD_ROWS];
-    int keypad_columns[KEYPAD_COLUMNS];
+    /** @brief GPIO pin numbers of the keypad rows. */
+    int *keypad_rows;
+    /** @brief GPIO pin numbers of the keypad columns. */
+    int *keypad_columns;
 };
 
 
@@ -51,13 +64,6 @@ void initializeGPIOPins(struct GPIOPins *gpio_pins);
 void cleanupGPIOPins(struct GPIOPins *gpio_pins) ;
 
 
-
-/**
- * @brief Prints all the GPIO pin numbers.
- * 
- * @param gpio_pins Struct with the GPIO pin numbers.
- */
-//void printGPIOPinNumbers(struct GPIOPins *gpio_pins);
 
 /**
  * @brief Prints the status of GPIO pins.
