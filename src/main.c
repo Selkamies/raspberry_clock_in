@@ -7,7 +7,7 @@
  * they were already marked as present or not. Users and logs are stored in a database.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-15
+ * @date Modified 2023-11-16
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -18,13 +18,13 @@
 
 
 
-#include <stdio.h>
-#include <pigpio.h>             // time_sleep()
+#include <stdio.h>              // printf().
 
 #include "config_handler.h"     // Load config from config.ini.
 #include "gpio_handler.h"       // GPIO initialization.
 #include "pins.h"               // Mapping GPIO pin numbers.
 #include "keypad.h"             // Input handling.
+#include "leds.h"               // We update led status here.
 
 
 
@@ -37,15 +37,42 @@ void mainLoop()
     // signal_received is part of pigpio, which handles access to the GPIO pins of the Raspberry Pi.
     while (!signal_received) 
     {
-        //printKeyStatus();
-        checkKeyPress(&gpio_pins);
+        updateKeypad(&gpio_pins);
+        updateLED();
 
-        //printGPIOPinStatus(&gpio_pins);
-
-        time_sleep(0.1);
+        pigpioSleep(0.1);
     }
 
     cleanupGPIOPins(&gpio_pins);
+}
+
+
+
+/**
+ * @brief Read files, set up variables, start pigpio.
+ */
+void initialize()
+{
+    printf("\nLoading config.ini.\n");
+    readConfigFile();
+
+    printf("Initializing keypad.\n");
+    initializeKeypad();
+
+    printf("Initializing pigpio.\n");
+    // Initialized pigpio connection to the GPIO pins and starts the main loop.
+    initializePigpio();
+
+    mainLoop();
+}
+
+/**
+ * @brief Freeing memory, turning off leds.
+ */
+void cleanUp()
+{
+    cleanupKeypad();
+    cleanupPigpio();
 }
 
 
@@ -54,18 +81,8 @@ int main()
 {
     printf("\nProgram starting.\n");
 
-    printf("\nLoading config.ini.\n");
-    readConfigFile();
-
-    printf("\nInitializing keypad.\n");
-    initializeKeypad();
-
-    printf("\nInitializing pigpio.\n");
-
-    // Initialized pigpio connection to the GPIO pins and starts the main loop.
-    initializeGPIO(mainLoop);
-
-    freeKeypad();
+    initialize();
+    cleanUp();
 
     return 0;
 }

@@ -6,7 +6,7 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.h.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-15
+ * @date Modified 2023-11-16
  * 
  * @copyright Copyright (c) 2023
  */
@@ -40,6 +40,8 @@ struct CurrentPinInput
 {
     /** @brief Index for the next free char in the array holding the PIN being entered. */
     int nextPressIndex;
+    /** @brief Whether key was recently pressed and we are counting until timeout. */
+    bool lastPressTimerOn;
     /** @brief Time since the last key was pressed. */
     time_t lastKeyPressTime;
     /** @brief Array holding the PIN being entered. */
@@ -65,7 +67,7 @@ struct Keypad
  * 
  * @param gpioPins Struct holding the GPIO pin numbers.
  */
-void checkKeyPress(struct GPIOPins *gpioPins);
+void updateKeypad(struct GPIOPins *gpioPins);
 
 /**
  * @brief Stores the pressed key to the current PIN under input.
@@ -77,7 +79,7 @@ void storeKeyPress(char key);
 /**
  * @brief Resets the currently input PIN.
  */
-void clearKeys();
+void clearPIN();
 
 /**
  * @brief Checks the full PIN for validity. Currently mock checks.
@@ -87,15 +89,26 @@ void clearKeys();
  * @return true If the PIN matches.
  * @return false If the PIN doesn't have a match.
  */
-bool checkPin(char *pin_input);
+bool checkPIN(char *pin_input);
 
 /**
- * @brief Checks if it has been too long since the last keypress.
- * 
- * @return true If time since last keypress exceeded wait time.
- * @return false If time since last keypress is under wait time.
+ * @brief Starts the timer counting the time since last keypress by recordin current time.
+ * Called at every keypad key press.
  */
-bool keypressTimeOut();
+void startTimeoutTimer();
+
+/**
+ * @brief Resets/stops the timer counting the time since last keypress.
+ * Called at initialization, when the timer reaches defined time limit, or when PIN is rejected or accepted.
+ */
+void resetTimeoutTimer();
+
+/**
+ * @brief Checks if it has been too long since the last keypress. If yes, rejects the PIN.
+ * @return true If it has been too long.
+ * @return false If it hasn't been too long.
+ */
+bool tooLongSinceLastKeypress();
 
 /**
  * @brief Prints a 4x4 array of zeroes and ones represeting the keypad key status. 
@@ -113,7 +126,7 @@ void initializeKeypad();
 /**
  * @brief Frees all arrays used by keypad requiring malloc/calloc.
  */
-void freeKeypad();
+void cleanupKeypad();
 
 
 

@@ -18,7 +18,7 @@ void signalHandler(int signo)
     }
 }
 
-void initializeGPIO(void (*mainLoop)()) 
+void initializePigpio() 
 {
     if (gpioInitialise() < 0) 
     {
@@ -28,9 +28,14 @@ void initializeGPIO(void (*mainLoop)())
 
     // Set up signal handler
     signal(SIGINT, signalHandler);
+}
 
-    // Start the main loop.
-    mainLoop();
+void pigpioSleep(double seconds)
+{
+    time_sleep(seconds);
+}
 
+void cleanupPigpio()
+{
     gpioTerminate();
 }

@@ -6,21 +6,18 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.c.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-15
+ * @date Modified 2023-11-16
  * 
  * @copyright Copyright (c) 2023
  * 
+ * TODO: Take keypad input on release instead of press?
  * TODO: Prevent accepting multiple keypresses per check?
  * TODO: Play sound with correct/incorrect pin.
- * TODO: Turn led on for a bit with correct/incorrect pin.
  * TODO: Allow PINs of different lengths, some key in the keypad checks the pin.
  * TODO: Instead of clearing the PIN inputs, just keep last X keys and keep checking until success or timeout?
  * TODO: PINs of variable lengths. Starting from some minimum length check every key press? 
  *       What is max length? Probably requires calloc()?
  * TODO: Actually check the PINs from a database when it and the code handling it exists.
- * TODO: KEYPAD_ROWS and KEYPAD_COLUMNS are also needed elsewhere (at least pins.h). 
- *       Move them to their own file? What about other defines?
- * TODO: Move the defines to other file(s) and change to extern consts, then read them from file?
  */
 
 
@@ -31,10 +28,11 @@
 #include <time.h>           // time_t and time.
 #include <string.h>         // strcmp()
 
-#include "config.h"
-#include "pins.h"
 #include "keypad.h"
-#include "keypad_gpio.h"
+#include "config.h"         // Config values in struct.
+#include "pins.h"           // GPIO pin numbers for keypad.
+#include "keypad_gpio.h"    // All GPIO manipulation is here, currently using pigpio.
+#include "leds.h"           // For turning leds on or off.
 
 
 
@@ -46,10 +44,12 @@ struct Keypad keypadState;
 
 
 
-void checkKeyPress(struct GPIOPins *gpioPins)
+// TODO: Currently multiple keys can be pressed at once.
+// TODO: Act on key releases instead?
+void updateKeypad(struct GPIOPins *gpioPins)
 {
+    // The key that was pressed, like "1" or "#".
     char pressedKey = EMPTY_KEY;
-    //bool keyWasPressed = false;
 
     for (int row = 0; row < config.KEYPAD_ROWS; row++)
     {
@@ -67,19 +67,13 @@ void checkKeyPress(struct GPIOPins *gpioPins)
             {
                 pressedKey = keypadState.keys[row][column];
                 keypadState.keysPressedPreviously[row][column] = true;
-
-                //printf("Key %c was just pressed.\n", pressedKey);
-
                 storeKeyPress(pressedKey);
-                //keyWasPressed = true;
             }
 
             // Key was pressed previously, but is not now.
             else if (!keyNowPressed && keypadState.keysPressedPreviously[row][column])
             {
                 keypadState.keysPressedPreviously[row][column] = false;
-                //pressedKey = keypadState.keys[row][column];
-                //printf("Key %c was just released.\n", pressedKey);
             }
         }
 
@@ -87,14 +81,19 @@ void checkKeyPress(struct GPIOPins *gpioPins)
         turnKeypadRowOn(gpioPins->keypad_rows[row]);
     }
 
-    //return pressedKey;
-}
+    tooLongSinceLastKeypress();
+} 
+
+
 
 void storeKeyPress(char key)
 {
+    // Just in case
+    turnLedsOff();
+
     // Save the pressed key and record the time.
     currentPinState.keyPresses[currentPinState.nextPressIndex] = key;
-    currentPinState.lastKeyPressTime = time(NULL);
+    startTimeoutTimer();
 
     printf("Index %d of PIN entered. Character %c.\n", currentPinState.nextPressIndex, key);
 
@@ -105,28 +104,26 @@ void storeKeyPress(char key)
     // Check the pin for validity and clear the saved pin.
     if (currentPinState.nextPressIndex >= config.MAX_PIN_LENGTH)
     {
-        if (checkPin(currentPinState.keyPresses))
+        if (checkPIN(currentPinState.keyPresses))
         {
             // TODO: Do database things.
             printf("\nCORRECT PIN! - %s \n", currentPinState.keyPresses);
+            turnLedOn(false, true, false);
         }
 
         else
         {
             printf("\nPIN REJECTED! - %s \n", currentPinState.keyPresses);
+            turnLedOn(true, false, false);
         }
 
-        printf("\nPress enter to continue.\n");
-        getchar();
-
-        clearKeys();
+        clearPIN();
+        resetTimeoutTimer();
     }
 }
 
-void clearKeys()
+void clearPIN()
 {
-    printf("PIN cleared. You may now enter another PIN.\n");
-
     currentPinState.lastKeyPressTime = EMPTY_TIMESTAMP;
     currentPinState.nextPressIndex = 0;
 
@@ -136,11 +133,12 @@ void clearKeys()
     }
 }
 
-bool checkPin(char *pin_input)
+bool checkPIN(char *pin_input)
 {
     // TODO: Check if we find user with this PIN from database.
     if (strcmp(pin_input, "123A") == 0)
     {
+
         return true;
     }
 
@@ -150,14 +148,41 @@ bool checkPin(char *pin_input)
     }
 }
 
-bool keypressTimeOut()
+void startTimeoutTimer()
 {
-    time_t current_time = time(NULL);
-    double time_since_last_press = difftime(currentPinState.lastKeyPressTime, current_time);
+    currentPinState.lastPressTimerOn = true;
+    currentPinState.lastKeyPressTime = time(NULL);
+}
 
-    if (time_since_last_press >= config.KEYPRESS_TIMEOUT)
+void resetTimeoutTimer()
+{
+    currentPinState.lastPressTimerOn = false;
+    currentPinState.lastKeyPressTime = EMPTY_TIMESTAMP;
+}
+
+bool tooLongSinceLastKeypress()
+{
+    if (currentPinState.lastPressTimerOn)
     {
-        return true;
+        time_t currentTime = time(NULL);
+        double time_since_last_press = difftime(currentTime, currentPinState.lastKeyPressTime);
+
+        if (currentPinState.lastKeyPressTime != 0 && time_since_last_press >= config.KEYPRESS_TIMEOUT)
+        {
+            // Yellow led.
+            turnLedOn(true, true, false);
+            clearPIN();
+            resetTimeoutTimer();
+
+            printf("Too long since last keypress, resetting PIN.\n");
+
+            return true;
+        }
+
+        else
+        {
+            return false;
+        }
     }
 
     else
@@ -184,7 +209,7 @@ void printKeyStatus()
 void initializeKeypad()
 {
     currentPinState.nextPressIndex = 0;
-    currentPinState.lastKeyPressTime = EMPTY_TIMESTAMP;
+    resetTimeoutTimer();
     currentPinState.keyPresses = calloc(config.MAX_PIN_LENGTH, sizeof(char));
 
     if (currentPinState.keyPresses == NULL) 
@@ -247,10 +272,14 @@ void initializeKeypad()
             keypadState.keys[row][column] = keyArray[row][column];
         }
     }
+
+    turnLedsOff();
 }
 
-void freeKeypad()
+void cleanupKeypad()
 {
+    turnLedsOff();
+
     free(currentPinState.keyPresses);
     currentPinState.keyPresses = NULL;
 

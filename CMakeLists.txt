@@ -14,6 +14,7 @@ set(SOURCES
     src/pins.c
     src/keypad/keypad.c
     src/keypad/keypad_gpio.c
+    src/leds.c
 )
 
 # List all header files
