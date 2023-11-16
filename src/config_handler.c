@@ -56,7 +56,7 @@ void setConfigValue(char *key, char *value)
 
 void readConfigFile()
 {
-    printf("\nLoading config.ini.\n");
+    printf("Loading config.ini.\n");
     
     //char *fileName = "config.ini";
     char *fileName = "../config/config.ini";

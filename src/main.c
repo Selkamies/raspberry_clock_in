@@ -21,7 +21,8 @@
 #include <stdio.h>              // printf().
 
 #include "config_handler.h"     // Load config from config.ini.
-#include "gpio_handler.h"       // GPIO initialization.
+#include "gpio_handler.h"       // Pigpio initialization.
+// TODO: Stop using this here, use in keypad and leds.
 #include "pins.h"               // Mapping GPIO pin numbers.
 #include "keypad.h"             // Input handling.
 #include "leds.h"               // We update led status here.
@@ -30,6 +31,7 @@
 
 void mainLoop()
 {
+    // TODO: Don't create this here, create pin struct for keypad in keypad and for leds in leds.
     struct GPIOPins gpio_pins = createGPIOPins();
 
     printf("\nMain loop starting. You may now input PIN.\n");
@@ -43,6 +45,7 @@ void mainLoop()
         pigpioSleep(0.1);
     }
 
+    // TODO: Move this to cleanup(). Stop passing gpio_pins around.
     cleanupGPIOPins(&gpio_pins);
 }
 
@@ -53,19 +56,21 @@ void mainLoop()
  */
 void initialize()
 {
-    readConfigFile();
-    initializeKeypad();
     initializePigpio();
 
+    readConfigFile();
+    initializeKeypad();
+    
     mainLoop();
 }
 
 /**
  * @brief Freeing memory, turning off leds.
  */
-void cleanUp()
+void cleanup()
 {
     cleanupKeypad();
+
     cleanupPigpio();
 }
 
@@ -76,7 +81,7 @@ int main()
     printf("\nProgram starting.\n");
 
     initialize();
-    cleanUp();
+    cleanup();
 
     return 0;
 }

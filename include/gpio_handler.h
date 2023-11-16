@@ -15,7 +15,7 @@
 
 
 
-#include <signal.h>     // sig_atomic_t used by pigpio.
+#include <signal.h>     // sig_atomic_t, signal() and SIGINT used by pigpio.
 
 
 

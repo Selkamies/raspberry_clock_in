@@ -13,11 +13,9 @@
 
 
 #include <stdio.h>      // printf().
-#include <signal.h>     // sig_atomic_t used by pigpio.
-#include <pigpio.h>
+#include <pigpio.h>     // gpioInitialize(), time_sleep(), gpioTerminate().
 
 #include "gpio_handler.h"
-//#include "pins.h"
 
 
 
@@ -38,7 +36,7 @@ void initializePigpio()
     if (gpioInitialise() < 0) 
     {
         fprintf(stderr, "Failed to initialize pigpio\n");
-        // TODO: Exit program.
+        // TODO: Exit program. 
     }
 
     // Set up signal handler
