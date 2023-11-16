@@ -5,7 +5,7 @@
  * @brief Reads values from config.ini and sets them in a config struct in config.h.
  * 
  * @date Created 2023-11-14
- * @date Modified 2023-11-15
+ * @date Modified 2023-11-16
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -56,6 +56,8 @@ void setConfigValue(char *key, char *value)
 
 void readConfigFile()
 {
+    printf("\nLoading config.ini.\n");
+    
     //char *fileName = "config.ini";
     char *fileName = "../config/config.ini";
 

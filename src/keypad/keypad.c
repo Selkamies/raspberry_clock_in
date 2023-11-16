@@ -208,6 +208,8 @@ void printKeyStatus()
 
 void initializeKeypad()
 {
+    printf("Initializing keypad.\n");
+
     currentPinState.nextPressIndex = 0;
     resetTimeoutTimer();
     currentPinState.keyPresses = calloc(config.MAX_PIN_LENGTH, sizeof(char));

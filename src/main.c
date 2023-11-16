@@ -53,14 +53,8 @@ void mainLoop()
  */
 void initialize()
 {
-    printf("\nLoading config.ini.\n");
     readConfigFile();
-
-    printf("Initializing keypad.\n");
     initializeKeypad();
-
-    printf("Initializing pigpio.\n");
-    // Initialized pigpio connection to the GPIO pins and starts the main loop.
     initializePigpio();
 
     mainLoop();

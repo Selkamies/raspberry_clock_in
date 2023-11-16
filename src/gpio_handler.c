@@ -1,10 +1,23 @@
+/**
+ * @file gpio_handler.c
+ * @author Selkamies
+ * 
+ * @brief Manages the pigpio library initialization. pigpio handles the GPIO pins of Raspberry Pi.
+ * 
+ * @date Created 2023-11-13
+ * @date Modified 2023-11-16
+ * 
+ * @copyright Copyright (c) 2023
+ */
 
-#include <stdio.h>
-#include <signal.h>     // sig_atomic_t
+
+
+#include <stdio.h>      // printf().
+#include <signal.h>     // sig_atomic_t used by pigpio.
 #include <pigpio.h>
 
 #include "gpio_handler.h"
-#include "pins.h"
+//#include "pins.h"
 
 
 
@@ -20,10 +33,12 @@ void signalHandler(int signo)
 
 void initializePigpio() 
 {
+    printf("Initializing pigpio.\n");
+
     if (gpioInitialise() < 0) 
     {
         fprintf(stderr, "Failed to initialize pigpio\n");
-        // Handle initialization failure
+        // TODO: Exit program.
     }
 
     // Set up signal handler
