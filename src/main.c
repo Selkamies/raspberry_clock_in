@@ -7,7 +7,7 @@
  * they were already marked as present or not. Users and logs are stored in a database.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-16
+ * @date Modified 2023-11-17
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -39,6 +39,8 @@ void mainLoop()
     // signal_received is part of pigpio, which handles access to the GPIO pins of the Raspberry Pi.
     while (!signal_received) 
     {
+        // TODO: Each update should have certain update speed. Keypad can be updated every 0.1 seconds,
+        // buzzer needs extremely fast updates.
         updateKeypad(&gpio_pins);
         updateLED();
 
@@ -60,6 +62,7 @@ void initialize()
 
     readConfigFile();
     initializeKeypad();
+    initializeLeds();
     
     mainLoop();
 }

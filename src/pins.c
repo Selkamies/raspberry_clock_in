@@ -6,7 +6,7 @@
  * initializing and resetting their status.
  * 
  * @date Created 2023-11-13
- * @date Modified 2023-11-15
+ * @date Modified 2023-11-17
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -59,7 +59,8 @@ struct GPIOPins readGPIOPinsFromFile(const char *filename)
     dummy_gpio_pins.keypad_columns[1] = 4;
     dummy_gpio_pins.keypad_columns[2] = 3;
     dummy_gpio_pins.keypad_columns[3] = 2;
-    // TODO: RGP led pin.
+    
+    // TODO: RGP led pins.
     // TODO: Buzzer pin?
     
 

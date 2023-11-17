@@ -5,10 +5,47 @@
  * @brief Reads values from config.ini and sets them in a config struct in config.h.
  * 
  * @date Created 2023-11-15
+ * @date Modified 2023-11-17
  * 
  * @copyright Copyright (c) 2023
  * 
  */
+
+
+
+#ifndef CONFIG_HANDLER_H
+#define CONFIG_HANDLER_H
+
+
+
+#include "leds.h"
+
+
+
+struct ConfigData
+{
+    //////////////
+    // keypad.c //
+    //////////////
+
+    // TODO: Use the struct fot these, it needs to be renamted and moved from config to keypad.
+    int MAX_PIN_LENGTH;
+    int KEYPRESS_TIMEOUT;
+    int KEYPAD_ROWS;
+    int KEYPAD_COLUMNS;
+    // TODO: Use the struct for these. It needs to be renamed and moved from pins to keypad.
+    int *keypad_row_pins;
+    int *keypad_column_pins;
+    // TODO: Two-dimensional malloc required.
+    //int **keypad_keys;
+    
+    ////////////
+    // leds.c //
+    ////////////
+    
+    struct LedGPIOPins ledPins;
+    int ledStaysOnFor;
+};
 
 
 
@@ -37,12 +74,22 @@ struct KeyValuePair
 /**
  * @brief Set the value read from config.ini to the correct place in config struct.
  * 
+ * @param section Name of the section the key-value pair is under.
  * @param key Key name of the key-value pair. Example: MAX_PIN_LENGTH
  * @param value Value for the key as a string. Example: "4"
  */
-void setConfigValue(char *key, char *value);
+void setConfigValue(struct ConfigData *configData, char *section, char *key, char *value);
+
+void readKeypadData(struct ConfigData *configData, char *key, char *value);
+void readLedData(struct ConfigData *configData, char *key, char *value);
 
 /**
  * @brief Reads key-value pairs from config.ini and calls setConfigValue to set them.
  */
 void readConfigFile();
+
+void stripWhitespace(char *str);
+
+
+
+#endif // CONFIG_HANDLER_H

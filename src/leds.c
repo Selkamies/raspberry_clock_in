@@ -5,7 +5,7 @@
  * @brief Handles the RGB led attached to the Raspberry Pi 4.
  * 
  * @date Created 2023-11-16
- * @date Modified 2023-11-16
+ * @date Modified 2023-11-17
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -21,20 +21,9 @@
 
 
 
-// TODO: Read these from file.
-struct LedGPIOPins ledPins =
-{
-    .LED_RED = 15,
-    .LED_GREEN = 14,
-    .LED_BLUE = 18
-};
+struct LedGPIOPins ledPins;
 
-struct LedStatus ledStatus =
-{
-    .ledIsOn = false,
-    .ledStaysOnFor = 3,
-    .ledStartTime = 0
-};
+struct LedStatus ledStatus;
 
 
 
@@ -88,4 +77,24 @@ void turnLedsOff()
         ledStatus.ledIsOn = false;
         ledStatus.ledStartTime = 0;
     }
+}
+
+void setLedVariables(struct LedGPIOPins *pins, int ledStaysOnFor)
+{
+    // TODO: This copies the structs, leaving us with duplicate data in config_handler.
+    ledPins = *pins;
+    ledStatus.ledStaysOnFor = ledStaysOnFor;
+}
+
+void initializeLeds()
+{
+    /* ledPins.LED_RED = 15;
+    ledPins.LED_GREEN = 14;
+    ledPins.LED_BLUE = 18; */
+
+    ledStatus.ledIsOn = false;
+    ledStatus.ledStartTime = 0;
+
+    // TODO: Read this from file.
+    //ledStatus.ledStaysOnFor = 3;
 }
