@@ -240,6 +240,45 @@ void readConfigFile()
 
 
 
+/* char *stripStringLeading(char *string)
+{
+    // Move the starting point forward until we find a non-whitespace character.
+    while(isspace(*string))
+    {
+        string++;
+    }
+
+    // If the string is now empty, return the original string.
+    if (*string == 0)
+    {
+        return string;
+    }
+    
+    return string;
+}
+
+char *stripStringTrailing(char *string)
+{
+    // Get a pointer to the last character of the string.
+    char *back = string + strlen(string);
+
+    // Loop backwards from the last character until we find a non-whitespace character.
+    while(isspace(*--back));
+
+    // Terminate the string at the new end.
+    *(back + 1) = '\0';
+
+    return string;
+}
+
+char *stripString(char *string)
+{
+    string = stripStringLeading(string);
+
+    return stripStringTrailing(string);
+    //return rtrim(ltrim(string)); 
+} */
+
 void stripWhitespace(char *str) 
 {
     // Strip leading whitespace.
