@@ -133,7 +133,7 @@ void printKeyStatus();
  * 
  * @param keyPins Struct holding the pin numbers for each row and column of the keypad.
  */
-void setKeypadValues(struct KeypadGPIOPins keyPins);
+void setKeypadValues(struct KeypadGPIOPins *keyPins);
 
 /**
  * @brief Initializes all arrays used by keypad requiring malloc/calloc.

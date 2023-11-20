@@ -242,7 +242,7 @@ void readConfigFile()
     }
 
     // Pass read variables to relevant files.
-    setKeypadValues(configData.keypadPins);
+    setKeypadValues(&configData.keypadPins);
     setLedVariables(&configData.ledPins, configData.ledStaysOnFor);
 
     // TODO: We cannot free these here.

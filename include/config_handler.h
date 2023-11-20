@@ -37,9 +37,6 @@ struct ConfigData
     int KEYPRESS_TIMEOUT;
     int KEYPAD_ROWS;
     int KEYPAD_COLUMNS;
-    // TODO: Use the struct for these. It needs to be renamed and moved from pins to keypad.
-    //int *keypad_row_pins;
-    //int *keypad_column_pins;
     struct KeypadGPIOPins keypadPins;
     // TODO: Two-dimensional malloc required.
     //int **keypad_keys;

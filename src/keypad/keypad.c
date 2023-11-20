@@ -208,9 +208,9 @@ void printKeyStatus()
 
 
 
-void setKeypadValues(struct KeypadGPIOPins keyPins)
+void setKeypadValues(struct KeypadGPIOPins *keyPins)
 {
-    keypadPins = keyPins;
+    keypadPins = *keyPins;
 
     initializeGPIOPins(&keypadPins);
 }
@@ -223,6 +223,8 @@ void initializeKeypad()
 
     currentPinState.nextPressIndex = 0;
     resetTimeoutTimer();
+
+    // Initializes the array holding the characters used in the current PIN.
     currentPinState.keyPresses = calloc(config.MAX_PIN_LENGTH, sizeof(char));
 
     if (currentPinState.keyPresses == NULL) 
