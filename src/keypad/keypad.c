@@ -24,8 +24,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>         // calloc()
-//#include <stdbool.h>
-//#include <time.h>           // time_t and time.
 #include <string.h>         // strcmp()
 
 #include "keypad.h"
@@ -34,8 +32,10 @@
 
 
 
+/* GPIO pin numbers of the keypad row and column pins. */
 struct KeypadGPIOPins keypadPins;
 
+/* Keypad configuration values like KEYPRESS_TIMEOUT. */
 struct KeypadConfig keypadConfig;
 
 /* Current state of the pin the user is trying to input, if any. */
@@ -48,7 +48,6 @@ struct Keypad keypadState;
 
 // TODO: Currently multiple keys can be pressed at once.
 // TODO: Act on key releases instead?
-//void updateKeypad(struct GPIOPins *gpioPins)
 void updateKeypad()
 {
     // The key that was pressed, like "1" or "#".

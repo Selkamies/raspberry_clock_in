@@ -9,7 +9,6 @@
  * 
  * @copyright Copyright (c) 2023
  * 
- * TODO: Read keypad pin numbers from file.
  * TODO: Read keypad keys from file.
  * TODO: Any way to reduce hardcoded strings? 
  *       " %100[^=]=%100[^\n]" should replace 100 with MAX_LINE_LENGTH.
@@ -65,12 +64,11 @@ void readConfigFile()
         }
 
         // Check for section change. sscanf sets the currentSection.
-        if (line[0] == '[' && sscanf(line, "[%99[^]]]", currentSection) == 1) {
-            //handleSection(currentSection);
+        if (line[0] == '[' && sscanf(line, "[%99[^]]]", currentSection) == 1) 
+        {
             continue;
         }
 
-        //struct KeyValuePair keyValuePair;
         // Key name of the key-value pair. Example: MAX_PIN_LENGTH
         char key[MAX_KEY_LENGTH];
         // Value for the key as a string. Example: "4"
@@ -79,7 +77,6 @@ void readConfigFile()
         // sscanf parses data from a string. 
         // It tries to find max length 100 of key part, =, and then max 100 length value part and a linebreak.
         // Then it assings the values to the keyValuePair.
-        // TODO: Key gets an extra space at the end. Strip both key and value?
         if (sscanf(line, " %100[^=]=%100[^\n]", key, value) == 2) 
         {
             //sscanf(value, " %100[^\n]", value);
@@ -200,17 +197,6 @@ void readKeypadData(struct ConfigData *configData, char *key, char *value)
         int colIndex = atoi(key + strlen("KEYPAD_COLUMN_"));
         configData->keypadPins.keypad_columns[colIndex] = atoi(value);
     }
-
-    // TODO: These need two calloc-initialized rows.
-    /* KEYPAD_ROW_0 = 11
-    KEYPAD_ROW_1 = 9
-    KEYPAD_ROW_2 = 10
-    KEYPAD_ROW_3 = 22
-
-    KEYPAD_COLUMN_0 = 17
-    KEYPAD_COLUMN_1 = 4
-    KEYPAD_COLUMN_2 = 3
-    KEYPAD_COLUMN_3 = 2 */
 }
 
 void readLedData(struct ConfigData *configData, char *key, char *value)
