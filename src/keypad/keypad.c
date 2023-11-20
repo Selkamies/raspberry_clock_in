@@ -6,7 +6,7 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.c.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-16
+ * @date Modified 2023-11-20
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -30,11 +30,12 @@
 
 #include "keypad.h"
 #include "config.h"         // Config values in struct.
-#include "pins.h"           // GPIO pin numbers for keypad.
 #include "keypad_gpio.h"    // All GPIO manipulation is here, currently using pigpio.
 #include "leds.h"           // For turning leds on or off.
 
 
+
+struct KeypadGPIOPins keypadPins;
 
 /* Current state of the pin the user is trying to input, if any. */
 struct CurrentPinInput currentPinState;
@@ -46,7 +47,8 @@ struct Keypad keypadState;
 
 // TODO: Currently multiple keys can be pressed at once.
 // TODO: Act on key releases instead?
-void updateKeypad(struct GPIOPins *gpioPins)
+//void updateKeypad(struct GPIOPins *gpioPins)
+void updateKeypad()
 {
     // The key that was pressed, like "1" or "#".
     char pressedKey = EMPTY_KEY;
@@ -54,13 +56,13 @@ void updateKeypad(struct GPIOPins *gpioPins)
     for (int row = 0; row < config.KEYPAD_ROWS; row++)
     {
         // Disable the current row to check if any key in this row is pressed.
-        turnKeypadRowOff(gpioPins->keypad_rows[row]);
+        turnKeypadRowOff(keypadPins.keypad_rows[row]);
 
         // Check every column pin to see if a key in this row is pressed.
         for (int column = 0; column < config.KEYPAD_COLUMNS; column++)
         {
             // Row off and column off means the key in the intersection is pressed.
-            bool keyNowPressed = isKeypadColumnOff(gpioPins->keypad_columns[column]);
+            bool keyNowPressed = isKeypadColumnOff(keypadPins.keypad_columns[column]);
 
             // Key is pressed, but was not previously.
             if (keyNowPressed && !keypadState.keysPressedPreviously[row][column])
@@ -78,7 +80,7 @@ void updateKeypad(struct GPIOPins *gpioPins)
         }
 
         // Enable the current row to check the next one.
-        turnKeypadRowOn(gpioPins->keypad_rows[row]);
+        turnKeypadRowOn(keypadPins.keypad_rows[row]);
     }
 
     tooLongSinceLastKeypress();
@@ -206,6 +208,15 @@ void printKeyStatus()
 
 
 
+void setKeypadValues(struct KeypadGPIOPins keyPins)
+{
+    keypadPins = keyPins;
+
+    initializeGPIOPins(&keypadPins);
+}
+
+
+
 void initializeKeypad()
 {
     printf("Initializing keypad.\n");
@@ -297,4 +308,6 @@ void cleanupKeypad()
     free(keypadState.keysPressedPreviously);
     keypadState.keys = NULL;
     keypadState.keysPressedPreviously = NULL;
+
+    cleanupGPIOPins(&keypadPins);
 }

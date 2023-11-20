@@ -14,6 +14,7 @@
 
 #include <stdio.h>      // printf().
 #include <pigpio.h>     // gpioInitialize(), time_sleep(), gpioTerminate().
+#include <stdbool.h>
 
 #include "gpio_handler.h"
 
@@ -29,7 +30,7 @@ void signalHandler(int signo)
     }
 }
 
-void initializePigpio() 
+bool initializePigpio() 
 {
     printf("Initializing pigpio.\n");
 
@@ -37,10 +38,13 @@ void initializePigpio()
     {
         fprintf(stderr, "Failed to initialize pigpio\n");
         // TODO: Exit program. 
+        return false;
     }
 
     // Set up signal handler
     signal(SIGINT, signalHandler);
+
+    return true;
 }
 
 void pigpioSleep(double seconds)

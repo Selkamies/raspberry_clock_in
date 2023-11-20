@@ -5,7 +5,7 @@
  * @brief Reads values from config.ini and sets them in a config struct in config.h.
  * 
  * @date Created 2023-11-14
- * @date Modified 2023-11-17
+ * @date Modified 2023-11-20
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -28,6 +28,8 @@
 
 // These are the files that we read values to.
 #include "config.h"
+#include "keypad.h"
+#include "leds.h"
 
 
 
@@ -68,14 +70,14 @@ void readKeypadData(struct ConfigData *configData, char *key, char *value)
     {
         config.KEYPAD_ROWS = atoi(value);
         configData->KEYPAD_ROWS = atoi(value);
-        configData->keypad_row_pins = calloc(configData->KEYPAD_ROWS, sizeof(int));
+        configData->keypadPins.keypad_rows = calloc(configData->KEYPAD_ROWS, sizeof(int));
     }
 
     else if (strcmp(key, "KEYPAD_COLUMNS") == 0)
     {
         config.KEYPAD_COLUMNS = atoi(value);
         configData->KEYPAD_COLUMNS = atoi(value);
-        configData->keypad_column_pins = calloc(configData->KEYPAD_COLUMNS, sizeof(int));
+        configData->keypadPins.keypad_columns = calloc(configData->KEYPAD_COLUMNS, sizeof(int));
     }
 
     // TODO: These need two-dimensional malloc-initialized array.
@@ -102,6 +104,21 @@ void readKeypadData(struct ConfigData *configData, char *key, char *value)
     ///////////////////////////////
     // [KEYPAD_GPIO_PIN_NUMBERS] //
     ///////////////////////////////
+
+    // strstr() looks for "KEYPAD_ROW_" from "KEYPAD_ROW_0" etc.
+    else if (strstr(key, "KEYPAD_ROW_") == key)
+    {
+        // Dynamically determine the row index from the key.
+        int rowIndex = atoi(key + strlen("KEYPAD_ROW_"));
+        configData->keypadPins.keypad_rows[rowIndex] = atoi(value);
+    }
+
+    else if (strstr(key, "KEYPAD_COLUMN_") == key)
+    {
+        // Dynamically determine the column index from the key.
+        int colIndex = atoi(key + strlen("KEYPAD_COLUMN_"));
+        configData->keypadPins.keypad_columns[colIndex] = atoi(value);
+    }
 
     // TODO: These need two calloc-initialized rows.
     /* KEYPAD_ROW_0 = 11
@@ -212,35 +229,32 @@ void readConfigFile()
         // TODO: Key gets an extra space at the end. Strip both key and value?
         if (sscanf(line, " %100[^=]=%100[^\n]", key, value) == 2) 
         {
-            //printf("Key before stripping: '%s'.", key);
-            stripWhitespace(key);
-            //printf("Key after stripping: '%s'.", key);
-            //printf("Value before stripping: '%s'.", value);
-            sscanf(value, " %100[^\n]", value);
-            //stripWhitespace(value);
-            //printf(" Value after stripping: '%s'.\n", value);
+            //sscanf(value, " %100[^\n]", value);
+
+            // TODO: Stripping leading whitespace doesn't work without strcpy for some reason.
+            strcpy(key, stripString(key));
+            strcpy(value, stripString(value));
+            //printf("After: '%s'\n", value);
             
             // Save the values to config struct.
             setConfigValue(&configData, currentSection, key, value);
         }
     }
 
-    /* printf("MAX_PIN_LENGTH: '%d'.\n", config.MAX_PIN_LENGTH);
-    printf("KEYPRESS_TIMEOUT: '%d'.\n", config.KEYPRESS_TIMEOUT);
-    printf("KEYPAD_ROWS: '%d'.\n", config.KEYPAD_ROWS);
-    printf("KEYPAD_COLUMNS: '%d'.\n", config.KEYPAD_COLUMNS); */
-
+    // Pass read variables to relevant files.
+    setKeypadValues(configData.keypadPins);
     setLedVariables(&configData.ledPins, configData.ledStaysOnFor);
 
-    free(configData.keypad_row_pins);
-    free(configData.keypad_column_pins);
+    // TODO: We cannot free these here.
+    //free(configData.keypadPins.keypad_rows);
+    //free(configData.keypadPins.keypad_columns);
 
     fclose(file);
 }
 
 
 
-/* char *stripStringLeading(char *string)
+char *stripStringLeading(char *string)
 {
     // Move the starting point forward until we find a non-whitespace character.
     while(isspace(*string))
@@ -273,34 +287,6 @@ char *stripStringTrailing(char *string)
 
 char *stripString(char *string)
 {
-    string = stripStringLeading(string);
-
-    return stripStringTrailing(string);
-    //return rtrim(ltrim(string)); 
-} */
-
-void stripWhitespace(char *str) 
-{
-    // Strip leading whitespace.
-    while (isspace((unsigned char)*str)) 
-    {
-        str++;
-    }
-
-    // TODO: String becomes empty, handle this somehow?
-    if (*str == '\0') 
-    {
-        return;
-    }
-
-    // TODO: Doesn't work, stop doing this?
-    // Strip trailing whitespace.
-    char *end = str + strlen(str) - 1;
-    while (end > str && isspace((unsigned char)*end)) 
-    {
-        end--;
-    }
-
-    // Null-terminate the modified string after the last non-whitespace character.
-    *(end + 1) = '\0';
+    return stripStringTrailing(stripStringLeading(string));
 }
+

@@ -6,7 +6,7 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.h.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-16
+ * @date Modified 2023-11-20
  * 
  * @copyright Copyright (c) 2023
  */
@@ -32,6 +32,18 @@
 
 // Forward declaration.
 struct GPIOPins;
+
+/**
+ * @brief Struct holding the pin numbers for all Raspberry Pi 4 GPIO pins used by the program.
+ * TODO: Read the pin numbers from file, so we don't have to recompile if we change pins.
+ */
+struct KeypadGPIOPins
+{
+    /** @brief GPIO pin numbers of the keypad rows. */
+    int *keypad_rows;
+    /** @brief GPIO pin numbers of the keypad columns. */
+    int *keypad_columns;
+};
 
 /**
  * @brief Struct holding data about the PIN the user is currently trying to input, if any.
@@ -64,10 +76,8 @@ struct Keypad
 
 /**
  * @brief Checks if any key in the keypad was just pressed, and handles it accordingly.
- * 
- * @param gpioPins Struct holding the GPIO pin numbers.
  */
-void updateKeypad(struct GPIOPins *gpioPins);
+void updateKeypad();
 
 /**
  * @brief Stores the pressed key to the current PIN under input.
@@ -117,6 +127,13 @@ bool tooLongSinceLastKeypress();
 void printKeyStatus();
 
 
+
+/**
+ * @brief Set the values that are read from file by config_handler and are needed by keypad.
+ * 
+ * @param keyPins Struct holding the pin numbers for each row and column of the keypad.
+ */
+void setKeypadValues(struct KeypadGPIOPins keyPins);
 
 /**
  * @brief Initializes all arrays used by keypad requiring malloc/calloc.

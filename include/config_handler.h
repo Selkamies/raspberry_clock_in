@@ -5,7 +5,7 @@
  * @brief Reads values from config.ini and sets them in a config struct in config.h.
  * 
  * @date Created 2023-11-15
- * @date Modified 2023-11-17
+ * @date Modified 2023-11-20
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -17,8 +17,12 @@
 #define CONFIG_HANDLER_H
 
 
-
+#include "keypad.h"
 #include "leds.h"
+
+// Forward declarations.
+/* struct KeypadGPIOPins;
+struct LedGPIOPins; */
 
 
 
@@ -34,8 +38,9 @@ struct ConfigData
     int KEYPAD_ROWS;
     int KEYPAD_COLUMNS;
     // TODO: Use the struct for these. It needs to be renamed and moved from pins to keypad.
-    int *keypad_row_pins;
-    int *keypad_column_pins;
+    //int *keypad_row_pins;
+    //int *keypad_column_pins;
+    struct KeypadGPIOPins keypadPins;
     // TODO: Two-dimensional malloc required.
     //int **keypad_keys;
     
@@ -88,7 +93,9 @@ void readLedData(struct ConfigData *configData, char *key, char *value);
  */
 void readConfigFile();
 
-void stripWhitespace(char *str);
+char *stripString(char *string);
+char *stripStringLeading(char *string);
+char *stripStringTrailing(char *string);
 
 
 

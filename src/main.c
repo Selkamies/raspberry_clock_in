@@ -7,7 +7,7 @@
  * they were already marked as present or not. Users and logs are stored in a database.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-17
+ * @date Modified 2023-11-20
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -22,8 +22,6 @@
 
 #include "config_handler.h"     // Load config from config.ini.
 #include "gpio_handler.h"       // Pigpio initialization.
-// TODO: Stop using this here, use in keypad and leds.
-#include "pins.h"               // Mapping GPIO pin numbers.
 #include "keypad.h"             // Input handling.
 #include "leds.h"               // We update led status here.
 
@@ -31,9 +29,6 @@
 
 void mainLoop()
 {
-    // TODO: Don't create this here, create pin struct for keypad in keypad and for leds in leds.
-    struct GPIOPins gpio_pins = createGPIOPins();
-
     printf("\nMain loop starting. You may now input PIN.\n");
 
     // signal_received is part of pigpio, which handles access to the GPIO pins of the Raspberry Pi.
@@ -41,14 +36,11 @@ void mainLoop()
     {
         // TODO: Each update should have certain update speed. Keypad can be updated every 0.1 seconds,
         // buzzer needs extremely fast updates.
-        updateKeypad(&gpio_pins);
+        updateKeypad();
         updateLED();
 
         pigpioSleep(0.1);
     }
-
-    // TODO: Move this to cleanup(). Stop passing gpio_pins around.
-    cleanupGPIOPins(&gpio_pins);
 }
 
 
@@ -58,7 +50,10 @@ void mainLoop()
  */
 void initialize()
 {
-    initializePigpio();
+    if (!initializePigpio())
+    {
+        return;
+    }
 
     readConfigFile();
     initializeKeypad();

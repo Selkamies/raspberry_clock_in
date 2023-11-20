@@ -33,8 +33,11 @@ void signalHandler(int signo);
 
 /**
  * @brief Initializes the pigpio connection, so that we can use the GPIO pins.
+ * 
+ * @return true If pigpio was initialized successfully.
+ * @return false If pigpio was not initialized.
  */
-void initializePigpio();
+bool initializePigpio();
 
 /**
  * @brief Uses pigpio's time_sleep() to sleep.

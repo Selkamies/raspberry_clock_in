@@ -1,5 +1,25 @@
+/**
+ * @file keypad_gpio.h
+ * @author Selkamies
+ * 
+ * @brief Handles all the GPIO pin operations required by keypad using pigpio.
+ * 
+ * @date Created 2023-11-13
+ * @date Updated 2023-11-20
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
+
+
+
 #ifndef KEYPAD_GPIO_H
 #define KEYPAD_GPIO_H
+
+
+
+// Forward declaration.
+struct KeypadGPIOPins;
 
 
 
@@ -27,6 +47,14 @@ void turnKeypadRowOff(int keypadRowPin);
  * @return false If gpioRead(keypadColumnPin) = 1.
  */
 bool isKeypadColumnOff(int keypadColumnPin);
+
+
+
+void initializeGPIOPins(struct KeypadGPIOPins *keypadPins);
+
+
+void cleanupGPIOPins(struct KeypadGPIOPins *keypadPins);
+
 
 
 

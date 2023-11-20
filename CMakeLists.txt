@@ -11,7 +11,6 @@ set(SOURCES
     src/config.c
     src/config_handler.c
     src/gpio_handler.c
-    src/pins.c
     src/keypad/keypad.c
     src/keypad/keypad_gpio.c
     src/leds.c
