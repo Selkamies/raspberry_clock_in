@@ -24,18 +24,19 @@
 
 #include <stdio.h>
 #include <stdlib.h>         // calloc()
-#include <stdbool.h>
-#include <time.h>           // time_t and time.
+//#include <stdbool.h>
+//#include <time.h>           // time_t and time.
 #include <string.h>         // strcmp()
 
 #include "keypad.h"
-#include "config.h"         // Config values in struct.
 #include "keypad_gpio.h"    // All GPIO manipulation is here, currently using pigpio.
 #include "leds.h"           // For turning leds on or off.
 
 
 
 struct KeypadGPIOPins keypadPins;
+
+struct KeypadConfig keypadConfig;
 
 /* Current state of the pin the user is trying to input, if any. */
 struct CurrentPinInput currentPinState;
@@ -53,13 +54,13 @@ void updateKeypad()
     // The key that was pressed, like "1" or "#".
     char pressedKey = EMPTY_KEY;
 
-    for (int row = 0; row < config.KEYPAD_ROWS; row++)
+    for (int row = 0; row < keypadConfig.KEYPAD_ROWS; row++)
     {
         // Disable the current row to check if any key in this row is pressed.
         turnKeypadRowOff(keypadPins.keypad_rows[row]);
 
         // Check every column pin to see if a key in this row is pressed.
-        for (int column = 0; column < config.KEYPAD_COLUMNS; column++)
+        for (int column = 0; column < keypadConfig.KEYPAD_COLUMNS; column++)
         {
             // Row off and column off means the key in the intersection is pressed.
             bool keyNowPressed = isKeypadColumnOff(keypadPins.keypad_columns[column]);
@@ -104,7 +105,7 @@ void storeKeyPress(char key)
     // If the next key press index would be at the pin length, 
     // we just received the last key for the PIN (by length).
     // Check the pin for validity and clear the saved pin.
-    if (currentPinState.nextPressIndex >= config.MAX_PIN_LENGTH)
+    if (currentPinState.nextPressIndex >= keypadConfig.MAX_PIN_LENGTH)
     {
         if (checkPIN(currentPinState.keyPresses))
         {
@@ -129,7 +130,7 @@ void clearPIN()
     currentPinState.lastKeyPressTime = EMPTY_TIMESTAMP;
     currentPinState.nextPressIndex = 0;
 
-    for (int pinIndex = 0; pinIndex < config.MAX_PIN_LENGTH; pinIndex++)
+    for (int pinIndex = 0; pinIndex < keypadConfig.MAX_PIN_LENGTH; pinIndex++)
     {
         currentPinState.keyPresses[pinIndex] = EMPTY_KEY;
     }
@@ -169,7 +170,7 @@ bool tooLongSinceLastKeypress()
         time_t currentTime = time(NULL);
         double time_since_last_press = difftime(currentTime, currentPinState.lastKeyPressTime);
 
-        if (currentPinState.lastKeyPressTime != 0 && time_since_last_press >= config.KEYPRESS_TIMEOUT)
+        if (currentPinState.lastKeyPressTime != 0 && time_since_last_press >= keypadConfig.KEYPRESS_TIMEOUT)
         {
             // Yellow led.
             turnLedOn(true, true, false);
@@ -199,7 +200,7 @@ void printKeyStatus()
 {
     printf("\nKeys:\n");
 
-    for (int row = 0; row < config.KEYPAD_ROWS; row++)
+    for (int row = 0; row < keypadConfig.KEYPAD_ROWS; row++)
     {
         printf("%d %d %d %d\n", keypadState.keysPressedPreviously[row][0], keypadState.keysPressedPreviously[row][1], 
                                 keypadState.keysPressedPreviously[row][2], keypadState.keysPressedPreviously[row][3]);
@@ -208,8 +209,9 @@ void printKeyStatus()
 
 
 
-void setKeypadValues(struct KeypadGPIOPins *keyPins)
+void setKeypadValues(struct KeypadConfig *config, struct KeypadGPIOPins *keyPins)
 {
+    keypadConfig = *config;
     keypadPins = *keyPins;
 
     initializeGPIOPins(&keypadPins);
@@ -225,22 +227,22 @@ void initializeKeypad()
     resetTimeoutTimer();
 
     // Initializes the array holding the characters used in the current PIN.
-    currentPinState.keyPresses = calloc(config.MAX_PIN_LENGTH, sizeof(char));
+    currentPinState.keyPresses = calloc(keypadConfig.MAX_PIN_LENGTH, sizeof(char));
 
     if (currentPinState.keyPresses == NULL) 
     {
         printf("\nERROR: Memory allocation failure in keypad.c, initializeKeyboard(), currentPinState.keyPresses!\n");
     }
 
-    for (int index = 0; index < config.MAX_PIN_LENGTH; index++)
+    for (int index = 0; index < keypadConfig.MAX_PIN_LENGTH; index++)
     {
         currentPinState.keyPresses[index] = EMPTY_KEY;
     }
 
 
 
-    keypadState.keys = malloc(config.KEYPAD_ROWS * sizeof(char*));
-    keypadState.keysPressedPreviously = calloc(config.KEYPAD_ROWS, sizeof(bool*));
+    keypadState.keys = malloc(keypadConfig.KEYPAD_ROWS * sizeof(char*));
+    keypadState.keysPressedPreviously = calloc(keypadConfig.KEYPAD_ROWS, sizeof(bool*));
 
     if (keypadState.keys == NULL) 
     {
@@ -252,9 +254,9 @@ void initializeKeypad()
         printf("\nERROR: Memory allocation failure in keypad.c, initializeKeyboard(), keypadState.keysPressedPreviously!\n");
     }
 
-    for (int index = 0; index < config.KEYPAD_ROWS; index++) 
+    for (int index = 0; index < keypadConfig.KEYPAD_ROWS; index++) 
     {
-        keypadState.keys[index] = malloc(config.KEYPAD_COLUMNS * sizeof(char));
+        keypadState.keys[index] = malloc(keypadConfig.KEYPAD_COLUMNS * sizeof(char));
 
         if (keypadState.keys[index] == NULL) 
         {
@@ -262,7 +264,7 @@ void initializeKeypad()
         }
 
         // Initializes all pressed states to 0 (false).
-        keypadState.keysPressedPreviously[index] = calloc(config.KEYPAD_COLUMNS, sizeof(bool));
+        keypadState.keysPressedPreviously[index] = calloc(keypadConfig.KEYPAD_COLUMNS, sizeof(bool));
 
         if (keypadState.keysPressedPreviously[index] == NULL) 
         {
@@ -280,9 +282,9 @@ void initializeKeypad()
     };
 
     // Copy the values to keypadState.keys.
-    for (int row = 0; row < config.KEYPAD_ROWS; row++) 
+    for (int row = 0; row < keypadConfig.KEYPAD_ROWS; row++) 
     {
-        for (int column = 0; column < config.KEYPAD_COLUMNS; column++) 
+        for (int column = 0; column < keypadConfig.KEYPAD_COLUMNS; column++) 
         {
             keypadState.keys[row][column] = keyArray[row][column];
         }
@@ -298,7 +300,7 @@ void cleanupKeypad()
     free(currentPinState.keyPresses);
     currentPinState.keyPresses = NULL;
 
-    for (int index = 0; index < config.KEYPAD_ROWS; index++)
+    for (int index = 0; index < keypadConfig.KEYPAD_ROWS; index++)
     {
         free(keypadState.keys[index]);
         free(keypadState.keysPressedPreviously[index]);

@@ -30,9 +30,6 @@
 
 
 
-// Forward declaration.
-struct GPIOPins;
-
 /**
  * @brief Struct holding the pin numbers for all Raspberry Pi 4 GPIO pins used by the program.
  * TODO: Read the pin numbers from file, so we don't have to recompile if we change pins.
@@ -43,6 +40,21 @@ struct KeypadGPIOPins
     int *keypad_rows;
     /** @brief GPIO pin numbers of the keypad columns. */
     int *keypad_columns;
+};
+
+/**
+ * @brief Struct holding configuration variables used by keypad and PIN reading.
+ */
+struct KeypadConfig
+{
+    /** @brief Maximum PIN length. */
+    int MAX_PIN_LENGTH;
+    /** @brief Time in seconds after the PIN is reset if we don'g get more input. */
+    int KEYPRESS_TIMEOUT;
+    /** @brief Number of rows in the keypad. */
+    int KEYPAD_ROWS;
+    /** @brief Number of columns in the keypad. */
+    int KEYPAD_COLUMNS;
 };
 
 /**
@@ -131,9 +143,10 @@ void printKeyStatus();
 /**
  * @brief Set the values that are read from file by config_handler and are needed by keypad.
  * 
+ * @param config Struct holding configuration variables used by keypad and PIN reading.
  * @param keyPins Struct holding the pin numbers for each row and column of the keypad.
  */
-void setKeypadValues(struct KeypadGPIOPins *keyPins);
+void setKeypadValues(struct KeypadConfig *config, struct KeypadGPIOPins *keyPins);
 
 /**
  * @brief Initializes all arrays used by keypad requiring malloc/calloc.

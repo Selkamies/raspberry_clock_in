@@ -26,17 +26,18 @@ struct LedGPIOPins; */
 
 
 
+/**
+ * @brief Struct holding all values read from config.ini. Relevant values are passed to files
+ * that need them, and this struct is discarded after we have done passing them.
+ * 
+ */
 struct ConfigData
 {
     //////////////
     // keypad.c //
     //////////////
 
-    // TODO: Use the struct fot these, it needs to be renamted and moved from config to keypad.
-    int MAX_PIN_LENGTH;
-    int KEYPRESS_TIMEOUT;
-    int KEYPAD_ROWS;
-    int KEYPAD_COLUMNS;
+    struct KeypadConfig keypadConfig;
     struct KeypadGPIOPins keypadPins;
     // TODO: Two-dimensional malloc required.
     //int **keypad_keys;
@@ -74,24 +75,63 @@ struct KeyValuePair
 
 
 /**
- * @brief Set the value read from config.ini to the correct place in config struct.
+ * @brief Reads key-value pairs from config.ini and calls setConfigValue to set them.
+ */
+void readConfigFile();
+
+/**
+ * @brief Set the value read from config.ini to the correct place in config struct. Forwards the 
+ * configData struct and key-value pair to subfunctions based on .ini sections.
  * 
+ * @param configData Struct holding all the config values that are read from config.ini.
  * @param section Name of the section the key-value pair is under.
  * @param key Key name of the key-value pair. Example: MAX_PIN_LENGTH
  * @param value Value for the key as a string. Example: "4"
  */
 void setConfigValue(struct ConfigData *configData, char *section, char *key, char *value);
 
+/**
+ * @brief Sets the config values in value relevant to keypad to the configData struct.
+ * 
+ * @param configData Struct holding all the config values that are read from config.ini.
+ * @param key Key name of the key-value pair. Example: MAX_PIN_LENGTH
+ * @param value Value for the key as a string. Example: "4"
+ */
 void readKeypadData(struct ConfigData *configData, char *key, char *value);
-void readLedData(struct ConfigData *configData, char *key, char *value);
 
 /**
- * @brief Reads key-value pairs from config.ini and calls setConfigValue to set them.
+ * @brief Sets the config values in value relevant to leds to the configData struct.
+ * 
+ * @param configData Struct holding all the config values that are read from config.ini.
+ * @param key Key name of the key-value pair. Example: MAX_PIN_LENGTH
+ * @param value Value for the key as a string. Example: "4"
  */
-void readConfigFile();
+void readLedData(struct ConfigData *configData, char *key, char *value);
 
+
+
+/**
+ * @brief Strips leading and trailing whitespace from a string.
+ * 
+ * @param string String to remove whitespace from.
+ * @return char* Pointer to the modified string.
+ */
 char *stripString(char *string);
+
+/**
+ * @brief Strips leading whitespace from a string.
+ * 
+ * @param string String to remove whitespace from.
+ * @return char* Pointer to the modified string.
+ */
 char *stripStringLeading(char *string);
+
+/**
+ * @brief Strips trailing whitespace from a string.
+ * 
+ * @param string String to remove whitespace from.
+ * @return char* Pointer to the modified string.
+ */
 char *stripStringTrailing(char *string);
 
 

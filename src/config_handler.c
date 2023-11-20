@@ -27,22 +27,103 @@
 #include "config_handler.h"
 
 // These are the files that we read values to.
-#include "config.h"
 #include "keypad.h"
 #include "leds.h"
-
-
-
-// TODO: Keep ALL values read from config.ini here and create this when we open the file. 
-// Then pass all the values to the structs in the relevant files, and this will be destroyed when
-// we exit the function reading the file.
-//struct ConfigData configData;
 
 
 
 const char *fileName = "../config/config.ini";
 
 
+
+void readConfigFile()
+{
+    printf("Loading config.ini.\n");
+    
+    //char *fileName = "config.ini";
+    char *fileName = "../config/config.ini";
+
+    FILE *file = fopen(fileName, "r");
+    if (!file) 
+    {
+        fprintf(stderr, "Error opening file: %s\n", fileName);
+        return;
+    }
+
+    struct ConfigData configData;
+
+    char line[MAX_LINE_LENGTH];
+    //char firstChar = line[0];
+    char currentSection[MAX_KEY_LENGTH];
+
+    while (fgets(line, sizeof(line), file)) 
+    {
+        // Skip comments and empty lines
+        if (line[0] == ';' || line[0] == '#' || line[0] == '\n' || line[0] == '\r') 
+        {
+            continue;
+        }
+
+        // Check for section change. sscanf sets the currentSection.
+        if (line[0] == '[' && sscanf(line, "[%99[^]]]", currentSection) == 1) {
+            //handleSection(currentSection);
+            continue;
+        }
+
+        //struct KeyValuePair keyValuePair;
+        // Key name of the key-value pair. Example: MAX_PIN_LENGTH
+        char key[MAX_KEY_LENGTH];
+        // Value for the key as a string. Example: "4"
+        char value[MAX_VALUE_LENGTH];
+
+        // sscanf parses data from a string. 
+        // It tries to find max length 100 of key part, =, and then max 100 length value part and a linebreak.
+        // Then it assings the values to the keyValuePair.
+        // TODO: Key gets an extra space at the end. Strip both key and value?
+        if (sscanf(line, " %100[^=]=%100[^\n]", key, value) == 2) 
+        {
+            //sscanf(value, " %100[^\n]", value);
+
+            // TODO: Stripping leading whitespace doesn't work without strcpy for some reason.
+            strcpy(key, stripString(key));
+            strcpy(value, stripString(value));
+            //printf("After: '%s'\n", value);
+            
+            // Save the values to config struct.
+            setConfigValue(&configData, currentSection, key, value);
+        }
+    }
+
+    // Pass read variables to relevant files.
+    setKeypadValues(&configData.keypadConfig, &configData.keypadPins);
+    setLedVariables(&configData.ledPins, configData.ledStaysOnFor);
+
+    // TODO: We cannot free these here.
+    //free(configData.keypadPins.keypad_rows);
+    //free(configData.keypadPins.keypad_columns);
+
+    fclose(file);
+}
+
+
+
+void setConfigValue(struct ConfigData *configData, char *section, char *key, char *value)
+{
+    //printf("Reading value from section '%s'.\n", section);
+
+    if (strcmp(section, "KEYPAD_GPIO_PIN_NUMBERS") == 0 || 
+        strcmp(section, "KEYPAD") == 0 ||
+        strcmp(section, "KEYPAD_KEYS") == 0)
+    {
+        readKeypadData(configData, key, value);
+    }
+
+    else if (strcmp(section, "LED_GPIO_PIN_NUMBERS") == 0 ||
+             strcmp(section, "LED") == 0)
+    {
+        readLedData(configData, key, value);
+    }
+}
 
 void readKeypadData(struct ConfigData *configData, char *key, char *value)
 {
@@ -52,14 +133,14 @@ void readKeypadData(struct ConfigData *configData, char *key, char *value)
 
     if (strcmp(key, "MAX_PIN_LENGTH") == 0)
     {
-        config.MAX_PIN_LENGTH = atoi(value);
-        configData->MAX_PIN_LENGTH = atoi(value);
+        //config.MAX_PIN_LENGTH = atoi(value);
+        configData->keypadConfig.MAX_PIN_LENGTH = atoi(value);
     }
 
     else if (strcmp(key, "KEYPRESS_TIMEOUT") == 0)
     {
-        config.KEYPRESS_TIMEOUT = atoi(value);
-        configData->MAX_PIN_LENGTH = atoi(value);
+        //config.KEYPRESS_TIMEOUT = atoi(value);
+        configData->keypadConfig.KEYPRESS_TIMEOUT = atoi(value);
     }
 
     ///////////////////
@@ -68,16 +149,16 @@ void readKeypadData(struct ConfigData *configData, char *key, char *value)
 
     else if (strcmp(key, "KEYPAD_ROWS") == 0)
     {
-        config.KEYPAD_ROWS = atoi(value);
-        configData->KEYPAD_ROWS = atoi(value);
-        configData->keypadPins.keypad_rows = calloc(configData->KEYPAD_ROWS, sizeof(int));
+        //config.KEYPAD_ROWS = atoi(value);
+        configData->keypadConfig.KEYPAD_ROWS = atoi(value);
+        configData->keypadPins.keypad_rows = calloc(configData->keypadConfig.KEYPAD_ROWS, sizeof(int));
     }
 
     else if (strcmp(key, "KEYPAD_COLUMNS") == 0)
     {
-        config.KEYPAD_COLUMNS = atoi(value);
-        configData->KEYPAD_COLUMNS = atoi(value);
-        configData->keypadPins.keypad_columns = calloc(configData->KEYPAD_COLUMNS, sizeof(int));
+        //config.KEYPAD_COLUMNS = atoi(value);
+        configData->keypadConfig.KEYPAD_COLUMNS = atoi(value);
+        configData->keypadPins.keypad_columns = calloc(configData->keypadConfig.KEYPAD_COLUMNS, sizeof(int));
     }
 
     // TODO: These need two-dimensional malloc-initialized array.
@@ -161,95 +242,6 @@ void readLedData(struct ConfigData *configData, char *key, char *value)
     {
         configData->ledStaysOnFor = atoi(value);
     }
-}
-
-void setConfigValue(struct ConfigData *configData, char *section, char *key, char *value)
-{
-    //printf("Reading value from section '%s'.\n", section);
-
-    if (strcmp(section, "KEYPAD_GPIO_PIN_NUMBERS") == 0 || 
-        strcmp(section, "KEYPAD") == 0 ||
-        strcmp(section, "KEYPAD_KEYS") == 0)
-    {
-        readKeypadData(configData, key, value);
-    }
-
-    else if (strcmp(section, "LED_GPIO_PIN_NUMBERS") == 0 ||
-             strcmp(section, "LED") == 0)
-    {
-        readLedData(configData, key, value);
-    }
-}
-
-
-
-void readConfigFile()
-{
-    printf("Loading config.ini.\n");
-    
-    //char *fileName = "config.ini";
-    char *fileName = "../config/config.ini";
-
-    FILE *file = fopen(fileName, "r");
-    if (!file) 
-    {
-        fprintf(stderr, "Error opening file: %s\n", fileName);
-        return;
-    }
-
-    struct ConfigData configData;
-
-    char line[MAX_LINE_LENGTH];
-    //char firstChar = line[0];
-    char currentSection[MAX_KEY_LENGTH];
-
-    while (fgets(line, sizeof(line), file)) 
-    {
-        // Skip comments and empty lines
-        if (line[0] == ';' || line[0] == '#' || line[0] == '\n' || line[0] == '\r') 
-        {
-            continue;
-        }
-
-        // Check for section change. sscanf sets the currentSection.
-        if (line[0] == '[' && sscanf(line, "[%99[^]]]", currentSection) == 1) {
-            //handleSection(currentSection);
-            continue;
-        }
-
-        //struct KeyValuePair keyValuePair;
-        // Key name of the key-value pair. Example: MAX_PIN_LENGTH
-        char key[MAX_KEY_LENGTH];
-        // Value for the key as a string. Example: "4"
-        char value[MAX_VALUE_LENGTH];
-
-        // sscanf parses data from a string. 
-        // It tries to find max length 100 of key part, =, and then max 100 length value part and a linebreak.
-        // Then it assings the values to the keyValuePair.
-        // TODO: Key gets an extra space at the end. Strip both key and value?
-        if (sscanf(line, " %100[^=]=%100[^\n]", key, value) == 2) 
-        {
-            //sscanf(value, " %100[^\n]", value);
-
-            // TODO: Stripping leading whitespace doesn't work without strcpy for some reason.
-            strcpy(key, stripString(key));
-            strcpy(value, stripString(value));
-            //printf("After: '%s'\n", value);
-            
-            // Save the values to config struct.
-            setConfigValue(&configData, currentSection, key, value);
-        }
-    }
-
-    // Pass read variables to relevant files.
-    setKeypadValues(&configData.keypadPins);
-    setLedVariables(&configData.ledPins, configData.ledStaysOnFor);
-
-    // TODO: We cannot free these here.
-    //free(configData.keypadPins.keypad_rows);
-    //free(configData.keypadPins.keypad_columns);
-
-    fclose(file);
 }
 
 

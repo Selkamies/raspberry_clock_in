@@ -8,7 +8,6 @@ set(CMAKE_C_STANDARD 11)
 #file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.c")
 set(SOURCES
     src/main.c
-    src/config.c
     src/config_handler.c
     src/gpio_handler.c
     src/keypad/keypad.c
