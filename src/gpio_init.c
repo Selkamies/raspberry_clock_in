@@ -1,11 +1,11 @@
 /**
- * @file gpio_handler.c
+ * @file gpio_init.c
  * @author Selkamies
  * 
  * @brief Manages the pigpio library initialization. pigpio handles the GPIO pins of Raspberry Pi.
  * 
  * @date Created 2023-11-13
- * @date Modified 2023-11-16
+ * @date Modified 2023-11-23
  * 
  * @copyright Copyright (c) 2023
  */
@@ -16,7 +16,7 @@
 #include <pigpio.h>     // gpioInitialize(), time_sleep(), gpioTerminate().
 #include <stdbool.h>
 
-#include "gpio_handler.h"
+#include "gpio_init.h"
 
 
 
@@ -30,7 +30,7 @@ void signalHandler(int signo)
     }
 }
 
-bool initializePigpio() 
+bool initializeGPIOLibrary() 
 {
     printf("Initializing pigpio.\n");
 
@@ -47,12 +47,12 @@ bool initializePigpio()
     return true;
 }
 
-void pigpioSleep(double seconds)
+void sleepGPIOLibrary(double seconds)
 {
     time_sleep(seconds);
 }
 
-void cleanupPigpio()
+void cleanupGPIOLibrary()
 {
     gpioTerminate();
 }

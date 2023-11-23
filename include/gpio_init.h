@@ -1,21 +1,22 @@
 /**
- * @file gpio_handler.h
+ * @file gpio_init.h
  * @author Selkamies
  * 
  * @brief Manages the pigpio library initialization. pigpio handles the GPIO pins of Raspberry Pi.
  * 
  * @date Created 2023-11-13
- * @date Modified 2023-11-16
+ * @date Modified 2023-11-23
  * 
  * @copyright Copyright (c) 2023
  */
 
-#ifndef GPIO_HANDLER_H
-#define GPIO_HANDLER_H
+#ifndef GPIO_INIT_H
+#define GPIO_INIT_H
 
 
 
 #include <signal.h>     // sig_atomic_t, signal() and SIGINT used by pigpio.
+#include <stdbool.h>
 
 
 
@@ -25,9 +26,9 @@
 extern volatile sig_atomic_t signal_received;
 
 /**
- * @brief TODO: This function does some pigpio stuff.
+ * @brief 
  * 
- * @param signo TODO: No idea.
+ * @param signo 
  */
 void signalHandler(int signo);
 
@@ -37,19 +38,19 @@ void signalHandler(int signo);
  * @return true If pigpio was initialized successfully.
  * @return false If pigpio was not initialized.
  */
-bool initializePigpio();
+bool initializeGPIOLibrary();
 
 /**
  * @brief Uses pigpio's time_sleep() to sleep.
  * 
  * @param seconds Duration in seconds, how long to sleep.
  */
-void pigpioSleep(double seconds);
+void sleepGPIOLibrary(double seconds);
 
 /**
  * @brief Terminates pigpio gracefully.
  */
-void cleanupPigpio();
+void cleanupGPIOLibrary();
 
 
-#endif // GPIO_HANDLER_H
+#endif // GPIO_INIT_H

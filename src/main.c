@@ -7,7 +7,7 @@
  * they were already marked as present or not. Users and logs are stored in a database.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-20
+ * @date Modified 2023-11-23
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -20,8 +20,8 @@
 
 #include <stdio.h>              // printf().
 
+#include "gpio_init.h"          // GPIO pin library (pigpio) initialization.
 #include "config_handler.h"     // Load config from config.ini.
-#include "gpio_handler.h"       // Pigpio initialization.
 #include "keypad.h"             // Input handling.
 #include "leds.h"               // We update led status here.
 
@@ -31,7 +31,7 @@ void mainLoop()
 {
     printf("\nMain loop starting. You may now input PIN.\n");
 
-    // signal_received is part of pigpio, which handles access to the GPIO pins of the Raspberry Pi.
+    // GPIO library (pigpio) handles the signal_received signal until CTRL-C.
     while (!signal_received) 
     {
         // TODO: Each update should have certain update speed. Keypad can be updated every 0.1 seconds,
@@ -39,7 +39,7 @@ void mainLoop()
         updateKeypad();
         updateLED();
 
-        pigpioSleep(0.1);
+        sleepGPIOLibrary(0.1);
     }
 }
 
@@ -50,7 +50,7 @@ void mainLoop()
  */
 void initialize()
 {
-    if (!initializePigpio())
+    if (!initializeGPIOLibrary())
     {
         return;
     }
@@ -69,7 +69,7 @@ void cleanup()
 {
     cleanupKeypad();
 
-    cleanupPigpio();
+    cleanupGPIOLibrary();
 }
 
 

@@ -5,7 +5,7 @@
  * @brief Handles the RGB led attached to the Raspberry Pi 4.
  * 
  * @date Created 2023-11-16
- * @date Modified 2023-11-20
+ * @date Modified 2023-11-23
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -16,10 +16,10 @@
 
 
 #include <stdbool.h>
-#include <time.h>           // time_t and time().
-#include <pigpio.h>
+#include <time.h>               // time_t and time().
 
 #include "leds.h"
+#include "gpio_functions.h"
 
 
 
@@ -49,17 +49,17 @@ void turnLedOn(bool red, bool green, bool blue)
 
     if (red)
     {
-        gpioWrite(ledPins.LED_RED, 1);
+        turnPinOn(ledPins.LED_RED);
     }
 
     if (green)
     {
-        gpioWrite(ledPins.LED_GREEN, 1);
+        turnPinOn(ledPins.LED_GREEN);
     }
 
     if (blue)
     {
-        gpioWrite(ledPins.LED_BLUE, 1);
+        turnPinOn(ledPins.LED_BLUE);
     }
 
     if (red || green ||blue)
@@ -73,9 +73,9 @@ void turnLedsOff()
 {
     if (ledStatus.ledIsOn)
     {
-        gpioWrite(ledPins.LED_RED, 0);
-        gpioWrite(ledPins.LED_GREEN, 0);
-        gpioWrite(ledPins.LED_BLUE, 0);
+        turnPinOff(ledPins.LED_RED);
+        turnPinOff(ledPins.LED_GREEN);
+        turnPinOff(ledPins.LED_BLUE);
         ledStatus.ledIsOn = false;
         ledStatus.ledStartTime = 0;
     }

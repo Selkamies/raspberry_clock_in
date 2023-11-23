@@ -9,9 +9,9 @@ set(CMAKE_C_STANDARD 11)
 set(SOURCES
     src/main.c
     src/config_handler.c
-    src/gpio_handler.c
-    src/keypad/keypad.c
-    src/keypad/keypad_gpio.c
+    src/gpio_init.c
+    src/keypad.c
+    src/gpio_functions.c
     src/leds.c
 )
 
@@ -47,4 +47,3 @@ target_link_libraries(clock_in pigpio)
 
 # Specify include directories for the target
 target_include_directories(clock_in PRIVATE include)
-target_include_directories(clock_in PRIVATE include/keypad)

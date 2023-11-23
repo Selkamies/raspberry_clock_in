@@ -6,7 +6,7 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.c.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-20
+ * @date Modified 2023-11-23
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -27,7 +27,7 @@
 #include <string.h>         // strcmp()
 
 #include "keypad.h"
-#include "keypad_gpio.h"    // All GPIO manipulation is here, currently using pigpio.
+#include "gpio_functions.h"    // All GPIO manipulation is here, currently using pigpio.
 #include "leds.h"           // For turning leds on or off.
 
 
@@ -56,13 +56,13 @@ void updateKeypad()
     for (int row = 0; row < keypadConfig.KEYPAD_ROWS; row++)
     {
         // Disable the current row to check if any key in this row is pressed.
-        turnKeypadRowOff(keypadPins.keypad_rows[row]);
+        turnPinOff(keypadPins.keypad_rows[row]);
 
         // Check every column pin to see if a key in this row is pressed.
         for (int column = 0; column < keypadConfig.KEYPAD_COLUMNS; column++)
         {
             // Row off and column off means the key in the intersection is pressed.
-            bool keyNowPressed = isKeypadColumnOff(keypadPins.keypad_columns[column]);
+            bool keyNowPressed = isPinOn(keypadPins.keypad_columns[column]);
 
             // Key is pressed, but was not previously.
             if (keyNowPressed && !keypadState.keysPressedPreviously[row][column])
@@ -80,7 +80,7 @@ void updateKeypad()
         }
 
         // Enable the current row to check the next one.
-        turnKeypadRowOn(keypadPins.keypad_rows[row]);
+        turnPinOn(keypadPins.keypad_rows[row]);
     }
 
     tooLongSinceLastKeypress();
@@ -213,7 +213,7 @@ void setKeypadValues(struct KeypadConfig *config, struct KeypadGPIOPins *keyPins
     keypadConfig = *config;
     keypadPins = *keyPins;
 
-    initializeGPIOPins(&keypadPins);
+    initializeKeypadGPIOPins(&keypadPins, &keypadConfig);
 }
 
 
@@ -312,5 +312,5 @@ void cleanupKeypad()
     keypadState.keys = NULL;
     keypadState.keysPressedPreviously = NULL;
 
-    cleanupGPIOPins(&keypadPins);
+    cleanupKeypadGPIOPins(&keypadPins, &keypadConfig);
 }
