@@ -5,7 +5,7 @@
  * @brief Reads values from config.ini and sets them in a config struct in config.h.
  * 
  * @date Created 2023-11-15
- * @date Modified 2023-11-20
+ * @date Modified 2023-11-23
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -40,7 +40,8 @@ struct ConfigData
     struct KeypadConfig keypadConfig;
     struct KeypadGPIOPins keypadPins;
     // TODO: Two-dimensional malloc required.
-    //int **keypad_keys;
+    //struct Keypad keypadState;
+    char **keys;
     
     ////////////
     // leds.c //

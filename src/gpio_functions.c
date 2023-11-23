@@ -48,7 +48,7 @@ bool isGPIOPinOn(int pinNumber)
 
 void initializeKeypadGPIOPins(struct KeypadGPIOPins *keypadPins, struct KeypadConfig *config)
 {
-    printf("Initializing GPIO pins.\n");
+    printf("Initializing keypad GPIO pins.\n");
 
     // Keypad rows are set to output and pulldown state.
     for (int rowIndex = 0; rowIndex < config->KEYPAD_ROWS; rowIndex++)

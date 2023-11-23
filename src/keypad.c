@@ -67,6 +67,8 @@ void updateKeypad()
             // Key is pressed, but was not previously.
             if (keyNowPressed && !keypadState.keysPressedPreviously[row][column])
             {
+                //printf("Key now pressed %d, previously %d\n", keyNowPressed, keypadState.keysPressedPreviously[row][column]);
+
                 pressedKey = keypadState.keys[row][column];
                 keypadState.keysPressedPreviously[row][column] = true;
                 storeKeyPress(pressedKey);
@@ -75,6 +77,7 @@ void updateKeypad()
             // Key was pressed previously, but is not now.
             else if (!keyNowPressed && keypadState.keysPressedPreviously[row][column])
             {
+                //printf("Key not pressed %d, previously %d\n", keyNowPressed, keypadState.keysPressedPreviously[row][column]);
                 keypadState.keysPressedPreviously[row][column] = false;
             }
         }
@@ -208,10 +211,12 @@ void printKeyStatus()
 
 
 
-void setKeypadValues(struct KeypadConfig *config, struct KeypadGPIOPins *keyPins)
+//void setKeypadValues(struct KeypadConfig *config, struct KeypadGPIOPins *keyPins, struct Keypad *state)
+void setKeypadValues(struct KeypadConfig *config, struct KeypadGPIOPins *keyPins, char **keys)
 {
     keypadConfig = *config;
-    keypadPins = *keyPins;
+    keypadPins = *keyPins;    
+    //keypadState = *state;
 
     initializeKeypadGPIOPins(&keypadPins, &keypadConfig);
 }

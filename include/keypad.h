@@ -6,7 +6,7 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.h.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-20
+ * @date Modified 2023-11-23
  * 
  * @copyright Copyright (c) 2023
  */
@@ -146,7 +146,8 @@ void printKeyStatus();
  * @param config Struct holding configuration variables used by keypad and PIN reading.
  * @param keyPins Struct holding the pin numbers for each row and column of the keypad.
  */
-void setKeypadValues(struct KeypadConfig *config, struct KeypadGPIOPins *keyPins);
+//void setKeypadValues(struct KeypadConfig *config, struct KeypadGPIOPins *keyPins, struct Keypad *state);
+void setKeypadValues(struct KeypadConfig *config, struct KeypadGPIOPins *keyPins, char **keys);
 
 /**
  * @brief Initializes all arrays used by keypad requiring malloc/calloc.
