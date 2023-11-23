@@ -29,14 +29,14 @@ struct KeypadGPIOPins;
  * 
  * @param pinNumber The pin number for the GPIO pin.
  */
-void turnPinOn(int pinNumber);
+void turnGPIOPinOn(int pinNumber);
 
 /**
  * @brief Turns the GPIO pin off.
  * 
  * @param pinNumber The pin number for the GPIO pin.
  */
-void turnPinOff(int pinNumber);
+void turnGPIOPinOff(int pinNumber);
 
 /**
  * @brief Checks if the GPIO pin is on.
@@ -45,7 +45,7 @@ void turnPinOff(int pinNumber);
  * @return true If gpioRead(pinNumber) = 0.
  * @return false If gpioRead(pinNumber) = 1.
  */
-bool isPinOn(int pinNumber);
+bool isGPIOPinOn(int pinNumber);
 
 
 

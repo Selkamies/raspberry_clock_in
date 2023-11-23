@@ -49,17 +49,17 @@ void turnLedOn(bool red, bool green, bool blue)
 
     if (red)
     {
-        turnPinOn(ledPins.LED_RED);
+        turnGPIOPinOn(ledPins.LED_RED);
     }
 
     if (green)
     {
-        turnPinOn(ledPins.LED_GREEN);
+        turnGPIOPinOn(ledPins.LED_GREEN);
     }
 
     if (blue)
     {
-        turnPinOn(ledPins.LED_BLUE);
+        turnGPIOPinOn(ledPins.LED_BLUE);
     }
 
     if (red || green ||blue)
@@ -73,9 +73,9 @@ void turnLedsOff()
 {
     if (ledStatus.ledIsOn)
     {
-        turnPinOff(ledPins.LED_RED);
-        turnPinOff(ledPins.LED_GREEN);
-        turnPinOff(ledPins.LED_BLUE);
+        turnGPIOPinOff(ledPins.LED_RED);
+        turnGPIOPinOff(ledPins.LED_GREEN);
+        turnGPIOPinOff(ledPins.LED_BLUE);
         ledStatus.ledIsOn = false;
         ledStatus.ledStartTime = 0;
     }

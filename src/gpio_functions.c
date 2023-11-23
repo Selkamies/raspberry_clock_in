@@ -23,17 +23,17 @@
 
 
 
-void turnPinOn(int pinNumber)
+void turnGPIOPinOn(int pinNumber)
 {
     gpioWrite(pinNumber, 1);
 }
 
-void turnPinOff(int pinNumber)
+void turnGPIOPinOff(int pinNumber)
 {
     gpioWrite(pinNumber, 0);
 }
 
-bool isPinOn(int pinNumber)
+bool isGPIOPinOn(int pinNumber)
 {
     if (gpioRead(pinNumber))
     {

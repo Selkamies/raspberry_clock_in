@@ -31,7 +31,7 @@ void mainLoop()
 {
     printf("\nMain loop starting. You may now input PIN.\n");
 
-    // GPIO library (pigpio) handles the signal_received signal until CTRL-C.
+    // CTRL-C will end he main loop.
     while (!signal_received) 
     {
         // TODO: Each update should have certain update speed. Keypad can be updated every 0.1 seconds,
@@ -55,6 +55,7 @@ void initialize()
         return;
     }
 
+    // Config file has to be read before we initialize keypad.
     readConfigFile();
     initializeKeypad();
     initializeLeds();

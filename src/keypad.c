@@ -56,13 +56,13 @@ void updateKeypad()
     for (int row = 0; row < keypadConfig.KEYPAD_ROWS; row++)
     {
         // Disable the current row to check if any key in this row is pressed.
-        turnPinOff(keypadPins.keypad_rows[row]);
+        turnGPIOPinOff(keypadPins.keypad_rows[row]);
 
         // Check every column pin to see if a key in this row is pressed.
         for (int column = 0; column < keypadConfig.KEYPAD_COLUMNS; column++)
         {
             // Row off and column off means the key in the intersection is pressed.
-            bool keyNowPressed = isPinOn(keypadPins.keypad_columns[column]);
+            bool keyNowPressed = isGPIOPinOn(keypadPins.keypad_columns[column]);
 
             // Key is pressed, but was not previously.
             if (keyNowPressed && !keypadState.keysPressedPreviously[row][column])
@@ -80,7 +80,7 @@ void updateKeypad()
         }
 
         // Enable the current row to check the next one.
-        turnPinOn(keypadPins.keypad_rows[row]);
+        turnGPIOPinOn(keypadPins.keypad_rows[row]);
     }
 
     tooLongSinceLastKeypress();
