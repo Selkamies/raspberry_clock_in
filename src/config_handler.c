@@ -5,7 +5,7 @@
  * @brief Reads values from config.ini and sets them in a config struct in config.h.
  * 
  * @date Created 2023-11-14
- * @date Modified 2023-11-20
+ * @date Modified 2023-11-24
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -21,13 +21,9 @@
 #include <stdio.h>
 #include <ctype.h>      // isspace().
 #include <stdlib.h>     // atoi() for converting string to int.
-#include <string.h>     // strcmp()
+#include <string.h>     // strcmp(), strstr(), sscanf().
 
 #include "config_handler.h"
-
-// These are the files that we read values to.
-#include "keypad.h"
-#include "leds.h"
 
 
 

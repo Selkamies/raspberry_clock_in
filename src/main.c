@@ -11,6 +11,8 @@
  * 
  * @copyright Copyright (c) 2023
  * 
+ * TODO: Different update frequencies for keypad, leds and buzzer/sound.
+ * 
  * Possible future implementations:
  * TODO: Support for RFID tags.
  * TODO: Support for a touch screen.
@@ -24,6 +26,7 @@
 #include "config_handler.h"     // Load config from config.ini.
 #include "keypad.h"             // Input handling.
 #include "leds.h"               // We update led status here.
+#include "sounds.h"
 
 
 
@@ -59,8 +62,7 @@ void initialize()
     readConfigFile();
     initializeKeypad();
     initializeLeds();
-    
-    mainLoop();
+    initializeSounds();
 }
 
 /**
@@ -69,6 +71,7 @@ void initialize()
 void cleanup()
 {
     cleanupKeypad();
+    cleanupSounds();
 
     cleanupGPIOLibrary();
 }
@@ -80,6 +83,7 @@ int main()
     printf("\nProgram starting.\n");
 
     initialize();
+    mainLoop();
     cleanup();
 
     return 0;

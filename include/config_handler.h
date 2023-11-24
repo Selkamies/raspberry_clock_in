@@ -5,7 +5,7 @@
  * @brief Reads values from config.ini and sets them in a config struct in config.h.
  * 
  * @date Created 2023-11-15
- * @date Modified 2023-11-23
+ * @date Modified 2023-11-24
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -17,12 +17,10 @@
 #define CONFIG_HANDLER_H
 
 
+
+// These are the files that we read values to. Forward declaration isn't engough here.
 #include "keypad.h"
 #include "leds.h"
-
-// Forward declarations.
-/* struct KeypadGPIOPins;
-struct LedGPIOPins; */
 
 
 

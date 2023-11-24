@@ -23,12 +23,13 @@
 
 
 #include <stdio.h>
-#include <stdlib.h>         // calloc()
-#include <string.h>         // strcmp()
+#include <stdlib.h>             // calloc()
+#include <string.h>             // strcmp()
 
 #include "keypad.h"
-#include "gpio_functions.h"    // All GPIO manipulation is here, currently using pigpio.
-#include "leds.h"           // For turning leds on or off.
+#include "gpio_functions.h"     // All GPIO manipulation is here, currently using pigpio.
+#include "leds.h"               // For turning leds on or off.
+#include "sounds.h"
 
 
 
@@ -124,6 +125,11 @@ void storeKeyPress(char key)
 
         clearPIN();
         resetTimeoutTimer();
+    }
+
+    else
+    {
+        playSound(BEEP_NORMAL);
     }
 }
 
