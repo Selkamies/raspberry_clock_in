@@ -6,7 +6,7 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.c.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-23
+ * @date Modified 2023-11-24
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -112,13 +112,13 @@ void storeKeyPress(char key)
         if (checkPIN(currentPinState.keyPresses))
         {
             // TODO: Do database things.
-            printf("\nCORRECT PIN! - %s \n", currentPinState.keyPresses);
+            printf("\nCORRECT PIN! - %s \n\n", currentPinState.keyPresses);
             turnLedOn(false, true, false);
         }
 
         else
         {
-            printf("\nPIN REJECTED! - %s \n", currentPinState.keyPresses);
+            printf("\nPIN REJECTED! - %s \n\n", currentPinState.keyPresses);
             turnLedOn(true, false, false);
         }
 
@@ -179,7 +179,7 @@ bool tooLongSinceLastKeypress()
             clearPIN();
             resetTimeoutTimer();
 
-            printf("Too long since last keypress, resetting PIN.\n");
+            printf("\nToo long since last keypress, resetting PIN.\n\n");
 
             return true;
         }

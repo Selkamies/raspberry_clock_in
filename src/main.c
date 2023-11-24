@@ -7,7 +7,7 @@
  * they were already marked as present or not. Users and logs are stored in a database.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-23
+ * @date Modified 2023-11-24
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -29,7 +29,7 @@
 
 void mainLoop()
 {
-    printf("\nMain loop starting. You may now input PIN.\n");
+    printf("\nMain loop starting. You may now input PIN.\n\n");
 
     // CTRL-C will end he main loop.
     while (!signal_received) 
