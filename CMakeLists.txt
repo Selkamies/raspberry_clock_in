@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 project(MyRaspberryPiProject C)
 
 set(CMAKE_C_STANDARD 11)
+#set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # Add your source files
 #file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.c")
@@ -42,21 +43,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 # Create the executable
 add_executable(clock_in ${SOURCES})
 
-# Find SDL2
-find_package(SDL2 REQUIRED)
-#target_include_directories(clock_in PRIVATE ${SDL2_INCLUDE_DIRS})
-target_link_libraries(clock_in ${SDL2_LIBRARIES})
-
-# Find SDL_mixer
-find_package(SDL2_mixer REQUIRED)
-#target_include_directories(clock_in PRIVATE ${SDL2_MIXER_INCLUDE_DIRS})
-#target_link_libraries(clock_in ${SDL2_MIXER_LIBRARIES})
-target_link_libraries(clock_in SDL2_mixer)
-
 # Add any external libraries
 # target_link_libraries(your_target_name external_lib)
 target_link_libraries(clock_in pigpio)
-#target_link_libraries(clock_in pigpio SDL2_mixer)
 
 # Specify include directories for the target
 target_include_directories(clock_in PRIVATE include)

@@ -5,7 +5,7 @@
  * @brief Handles playing sounds. 
  * 
  * @date Created 2023-11-24
- * @date Updated 2023-11-24
+ * @date Updated 2023-11-27
  * 
  * @copyright Copyright (c) 2023
  */
@@ -17,15 +17,16 @@
 
 
 
-enum Sound {
-  BEEP_NORMAL,
-  BEEP_SUCCESS,
-  BEEP_ERROR
+enum Sound 
+{
+  SOUND_BEEP_NORMAL,
+  SOUND_BEEP_SUCCESS,
+  SOUND_BEEP_ERROR
 };
 
-#define BEEP_NORMAL_FILE "./../sounds/beep_input.wav"
-#define BEEP_SUCCESS_FILE "./../sounds/beep_success.wav"
-#define BEEP_ERROR_FILE "./../sounds/beep_error.wav"
+#define BEEP_NORMAL_FILE_PATH "./../sounds/beep_input.wav"
+#define BEEP_SUCCESS_FILE_PATH "./../sounds/beep_success.wav"
+#define BEEP_ERROR_FILE_PATH "./../sounds/beep_error.wav"
 
 
 
