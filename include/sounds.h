@@ -5,7 +5,7 @@
  * @brief Handles playing sounds. 
  * 
  * @date Created 2023-11-24
- * @date Updated 2023-11-27
+ * @date Updated 2023-11-28
  * 
  * @copyright Copyright (c) 2023
  */
@@ -17,30 +17,46 @@
 
 
 
+#include "SDL2/SDL_mixer.h"     // SDL_mixer handles playing sound files. Needed here for Mix_Chunk.
+
+
+
 /** 
  * @brief Enumeration of sounds used in the program. Passed to playSound() function as a parameter. 
  */
 enum Sound 
 {
-  SOUND_BEEP_NORMAL,
-  SOUND_BEEP_SUCCESS,
-  SOUND_BEEP_ERROR
+    SOUND_BEEP_NORMAL,
+    SOUND_BEEP_SUCCESS,
+    SOUND_BEEP_ERROR
+};
+
+/**
+ * @brief Struct holding SDL_mixer sound chunks for the different sounds.
+ */
+struct SoundChunks
+{
+    /** @brief .wav file loaded to chunk used by SDL_mixer. Used for normal beep when pressing keypad numbers. */
+    Mix_Chunk *beepNormal;
+    /** @brief .wav file loaded to chunk used by SDL_mixer. Used after correct PIN has been entered. */
+    Mix_Chunk *beepSuccess;
+    /** @brief .wav file loaded to chunk used by SDL_mixer. Used for after timeout or wrong PIN has been entered. */
+    Mix_Chunk *beepError;
 };
 
 
 
-/** 
- * @brief The index number of the audio device that is used to play the sounds.
- * TODO: Read from file or actually get the default sound device selection to work.
- */
-#define AUDIO_DEVICE_INDEX 3
+#define SOUNDS_FOLDER_PATH "./../sounds/"
+// For release?
+//#define SOUNDS_FOLDER_PATH "./sounds/"
 
-/** @brief File path and file name of normal beep sound file.
- * TODO: This is different for debug and release. Read from config file?
- */
-#define BEEP_NORMAL_FILE_PATH "./../sounds/beep_input.wav"
-#define BEEP_SUCCESS_FILE_PATH "./../sounds/beep_success.wav"
-#define BEEP_ERROR_FILE_PATH "./../sounds/beep_error.wav"
+#define BEEP_NORMAL_FILE_NAME "beep_input.wav"
+#define BEEP_SUCCESS_FILE_NAME "beep_success.wav"
+#define BEEP_ERROR_FILE_NAME "beep_error.wav"
+
+#define BEEP_NORMAL_FILE_PATH (SOUNDS_FOLDER_PATH BEEP_NORMAL_FILE_NAME)
+#define BEEP_SUCCESS_FILE_PATH (SOUNDS_FOLDER_PATH BEEP_SUCCESS_FILE_NAME)
+#define BEEP_ERROR_FILE_PATH (SOUNDS_FOLDER_PATH BEEP_ERROR_FILE_NAME)
 
 
 
@@ -49,7 +65,19 @@ enum Sound
  */
 void initializeSounds();
 
-//const char* findValidSoundDevice();
+/**
+ * @brief Used to set the manualAudioDeviceId that is read from file. Called by config_handler.c.
+ * 
+ * @param manualDeviceID The audio device id the program will use. -1 means the default audio device will be used.
+ */
+void setSoundsConfig(int manualDeviceID);
+
+/**
+ * @brief Selects either the default audio device or manually set audio device with specified id.
+ * 
+ * @return SDL_AudioDeviceID The SDL audio device id number selected. integer.
+ */
+SDL_AudioDeviceID selectAudioDeviceID();
 
 /**
  * @brief Plays a desired sound.

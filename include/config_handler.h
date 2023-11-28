@@ -5,7 +5,7 @@
  * @brief Reads values from config.ini and sets them in a config struct in config.h.
  * 
  * @date Created 2023-11-15
- * @date Modified 2023-11-24
+ * @date Modified 2023-11-28
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -47,6 +47,12 @@ struct ConfigData
     
     struct LedGPIOPins ledPins;
     int ledStaysOnFor;
+
+    //////////////
+    // sounds.c //
+    //////////////
+
+    int audioDeviceID;
 };
 
 
@@ -107,6 +113,7 @@ void readKeypadData(struct ConfigData *configData, char *key, char *value);
  */
 void readLedData(struct ConfigData *configData, char *key, char *value);
 
+void readSoundData(struct ConfigData *configData, char *key, char *value);
 
 
 /**

@@ -5,6 +5,11 @@ project(MyRaspberryPiProject C)
 set(CMAKE_C_STANDARD 11)
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 
+# Set the build type to Debug if not explicitly set
+#if(NOT CMAKE_BUILD_TYPE)
+#    set(CMAKE_BUILD_TYPE Debug)
+#endif()
+
 # Add your source files
 #file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.c")
 set(SOURCES
@@ -61,3 +66,5 @@ target_link_libraries(clock_in pigpio)
 # Specify include directories for the target
 target_include_directories(clock_in PRIVATE include)
 
+# Print the build type for verification
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")

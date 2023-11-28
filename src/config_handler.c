@@ -5,7 +5,7 @@
  * @brief Reads values from config.ini and sets them in a config struct in config.h.
  * 
  * @date Created 2023-11-14
- * @date Modified 2023-11-24
+ * @date Modified 2023-11-28
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -24,6 +24,8 @@
 #include <string.h>     // strcmp(), strstr(), sscanf().
 
 #include "config_handler.h"
+
+#include "sounds.h"
 
 
 
@@ -93,6 +95,7 @@ void readConfigFile()
     //setKeypadValues(&configData.keypadConfig, &configData.keypadPins, &configData.keypadState);
     setKeypadValues(&configData.keypadConfig, &configData.keypadPins, configData.keys);
     setLedVariables(&configData.ledPins, configData.ledStaysOnFor);
+    setSoundsConfig(configData.audioDeviceID);
 
     // TODO: We cannot free these here.
     //free(configData.keypadPins.keypad_rows);
@@ -118,6 +121,11 @@ void setConfigValue(struct ConfigData *configData, char *section, char *key, cha
              strcmp(section, "LED") == 0)
     {
         readLedData(configData, key, value);
+    }
+
+    else if (strcmp(section, "SOUNDS") == 0)
+    {
+        readSoundData(configData, key, value);
     }
 }
 
@@ -262,6 +270,14 @@ void readLedData(struct ConfigData *configData, char *key, char *value)
     else if (strcmp(key, "LED_STAYS_ON_FOR") == 0)
     {
         configData->ledStaysOnFor = atoi(value);
+    }
+}
+
+void readSoundData(struct ConfigData *configData, char *key, char *value)
+{
+    if (strcmp(key, "AUDIO_DEVICE_ID") == 0)
+    {
+        configData->audioDeviceID = atoi(value);
     }
 }
 
