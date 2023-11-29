@@ -6,13 +6,11 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.c.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-27
+ * @date Modified 2023-11-29
  * 
  * @copyright Copyright (c) 2023
  * 
  * TODO: Take keypad input on release instead of press?
- * TODO: Prevent accepting multiple keypresses per check?
- * TODO: Play sound with correct/incorrect pin.
  * TODO: Allow PINs of different lengths, some key in the keypad checks the pin.
  * TODO: Instead of clearing the PIN inputs, just keep last X keys and keep checking until success or timeout?
  * TODO: PINs of variable lengths. Starting from some minimum length check every key press? 
@@ -22,7 +20,7 @@
 
 
 
-#include <stdio.h>
+#include <stdio.h>              // printf()
 #include <stdlib.h>             // calloc()
 #include <string.h>             // strcmp()
 
@@ -34,22 +32,109 @@
 
 
 /* GPIO pin numbers of the keypad row and column pins. */
-struct KeypadGPIOPins keypadPins;
+static struct KeypadGPIOPins keypadPins;
 
 /* Keypad configuration values like KEYPRESS_TIMEOUT. */
-struct KeypadConfig keypadConfig;
+static struct KeypadConfig keypadConfig;
 
 /* Current state of the pin the user is trying to input, if any. */
-struct CurrentPinInput currentPinState;
+static struct CurrentPinInput currentPinState;
 
 /* Keys on the keypad and their state when previously checked. */
-struct Keypad keypadState;
+static struct Keypad keypadState;
 
 
 
-// TODO: Currently multiple keys can be pressed at once.
-// TODO: Act on key releases instead?
 void updateKeypad()
+{
+    // TODO: difftime only returns full seconds.
+    //time_t currentTime = time(NULL);
+    //double timeSinceLastUpdate = difftime(currentTime, keypadState.lastUpdateTime);
+
+    //if (keypadState.lastUpdateTime != 0 && timeSinceLastUpdate >= keypadState.updateInterval)
+    //{
+        updateKeypadStatus();
+
+        if (keypadState.exactlyOneKeyPressed && keypadState.noKeysPressedPreviously)
+        {
+            storeKeyPress(keypadState.keyPressed);
+        }
+
+        if (keypadState.anyKeysPressed)
+        {
+            keypadState.noKeysPressedPreviously = false;
+        }
+
+        else
+        {
+            keypadState.noKeysPressedPreviously = true;
+        }
+
+        //printf("Time since last update: %.2f\n", timeSinceLastUpdate);
+        //keypadState.lastUpdateTime = currentTime;
+
+        tooLongSinceLastKeypress();
+    //}
+} 
+
+void updateKeypadStatus()
+{
+    // Number of keys that are pressed/down this update.
+    int keysNowPressedCount = 0;
+
+    for (int row = 0; row < keypadConfig.KEYPAD_ROWS; row++)
+    {
+        // Disable the current row to check if any key in this row is pressed.
+        turnGPIOPinOff(keypadPins.keypad_rows[row]);
+
+        // Check every column pin to see if a key in this row is pressed.
+        for (int column = 0; column < keypadConfig.KEYPAD_COLUMNS; column++)
+        {
+            // Row off and column on means that they key in the intersection is pressed.
+            bool keyNowPressed = isGPIOPinOn(keypadPins.keypad_columns[column]);
+
+            if (keyNowPressed)
+            {
+                keypadState.keyPressed = keypadState.keys[row][column];
+                keypadState.anyKeysPressed = true;
+
+                keysNowPressedCount++;
+
+                // More than one key is pressed down at the same time, we don't accept ambigious input.
+                if (keysNowPressedCount > 1)
+                {
+                    keypadState.exactlyOneKeyPressed = false;
+                    // This isn't necessary, but we should probably do it just in case.
+                    keypadState.keyPressed = EMPTY_KEY;
+
+                    return;
+                }
+            }
+
+            keypadState.keysPressedPreviously[row][column] = keyNowPressed;
+        }
+
+        // Enable the current row to check the next one.
+        turnGPIOPinOn(keypadPins.keypad_rows[row]);
+    }
+
+    if (keysNowPressedCount == 1)
+    {
+        keypadState.exactlyOneKeyPressed = true;
+    }
+
+    else if (keysNowPressedCount == 0)
+    {
+        keypadState.keyPressed = EMPTY_KEY;
+        keypadState.anyKeysPressed = false;
+        keypadState.exactlyOneKeyPressed = false; 
+    }
+}
+
+
+
+// Old code.
+/* void updateKeypad()
 {
     // The key that was pressed, like "1" or "#".
     char pressedKey = EMPTY_KEY;
@@ -88,7 +173,7 @@ void updateKeypad()
     }
 
     tooLongSinceLastKeypress();
-} 
+}  */
 
 
 
@@ -178,9 +263,9 @@ bool tooLongSinceLastKeypress()
     if (currentPinState.lastPressTimerOn)
     {
         time_t currentTime = time(NULL);
-        double time_since_last_press = difftime(currentTime, currentPinState.lastKeyPressTime);
+        double timeSinceLastKeyPress = difftime(currentTime, currentPinState.lastKeyPressTime);
 
-        if (currentPinState.lastKeyPressTime != 0 && time_since_last_press >= keypadConfig.KEYPRESS_TIMEOUT)
+        if (currentPinState.lastKeyPressTime != 0 && timeSinceLastKeyPress >= keypadConfig.KEYPRESS_TIMEOUT)
         {
             // Yellow led.
             turnLedOn(true, true, false);
@@ -257,6 +342,12 @@ void initializeKeypad()
 
     keypadState.keys = malloc(keypadConfig.KEYPAD_ROWS * sizeof(char*));
     keypadState.keysPressedPreviously = calloc(keypadConfig.KEYPAD_ROWS, sizeof(bool*));
+    keypadState.noKeysPressedPreviously = false;
+    keypadState.keyPressed = EMPTY_KEY;
+    keypadState.exactlyOneKeyPressed = false;
+    keypadState.anyKeysPressed = false;
+    keypadState.lastUpdateTime = time(NULL);
+    keypadState.updateInterval = 1.0;
 
     if (keypadState.keys == NULL) 
     {

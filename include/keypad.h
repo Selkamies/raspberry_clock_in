@@ -6,7 +6,7 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.h.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-23
+ * @date Modified 2023-11-29
  * 
  * @copyright Copyright (c) 2023
  */
@@ -82,14 +82,32 @@ struct Keypad
     /** @brief State of keys (pressed or not) during previous check. 
      * Used to check for changes, so that we only register button press once. */
     bool **keysPressedPreviously;
+    /** @brief Current keypad key that is pressed. */
+    char keyPressed;
+    /** @brief Whether exactly one keypad key is pressed during a keypad update. */
+    bool exactlyOneKeyPressed;
+    /** @brief Whether any keypad key is pressed during a keypad update. */
+    bool anyKeysPressed;
+    /** @brief Whether no keypad keys were pressed during a previous keypad update. */
+    bool noKeysPressedPreviously;
+    /** @brief Time when last keypad update was done. */
+    time_t lastUpdateTime;
+    /** @brief Minimum time between keypad updates. */
+    double updateInterval;
 };
 
 
 
 /**
- * @brief Checks if any key in the keypad was just pressed, and handles it accordingly.
+ * @brief Updates the keypad status and handles key presses if necessary.
  */
 void updateKeypad();
+
+/**
+ * @brief Loops through the keypad and updates a struct holding data about it's current status,
+ * like whether any keys are pressed, what key is pressed, etc.
+ */
+void updateKeypadStatus();
 
 /**
  * @brief Stores the pressed key to the current PIN under input.

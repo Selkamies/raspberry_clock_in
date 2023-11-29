@@ -7,11 +7,9 @@
  * they were already marked as present or not. Users and logs are stored in a database.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-24
+ * @date Modified 2023-11-29
  * 
  * @copyright Copyright (c) 2023
- * 
- * TODO: Different update frequencies for keypad, leds and buzzer/sound.
  * 
  * Possible future implementations:
  * TODO: Support for RFID tags.
@@ -37,8 +35,6 @@ void mainLoop()
     // CTRL-C will end he main loop.
     while (!signal_received) 
     {
-        // TODO: Each update should have certain update speed. Keypad can be updated every 0.1 seconds,
-        // buzzer needs extremely fast updates.
         updateKeypad();
         updateLED();
 
