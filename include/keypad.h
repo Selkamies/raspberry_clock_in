@@ -6,7 +6,7 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.h.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-29
+ * @date Modified 2023-11-30
  * 
  * @copyright Copyright (c) 2023
  */
@@ -67,7 +67,8 @@ struct CurrentPinInput
     /** @brief Whether key was recently pressed and we are counting until timeout. */
     bool lastPressTimerOn;
     /** @brief Time since the last key was pressed. */
-    time_t lastKeyPressTime;
+    double lastKeyPressTime;
+    //time_t lastKeyPressTime;
     /** @brief Array holding the PIN being entered. */
     char *keyPresses;
 };
@@ -91,7 +92,7 @@ struct Keypad
     /** @brief Whether no keypad keys were pressed during a previous keypad update. */
     bool noKeysPressedPreviously;
     /** @brief Time when last keypad update was done. */
-    time_t lastUpdateTime;
+    double lastUpdateTime;
     /** @brief Minimum time between keypad updates. */
     double updateInterval;
 };
@@ -129,7 +130,7 @@ void clearPIN();
  * @return true If the PIN matches.
  * @return false If the PIN doesn't have a match.
  */
-bool checkPIN(char *pin_input);
+bool validPIN(char *pin_input);
 
 /**
  * @brief Starts the timer counting the time since last keypress by recordin current time.
@@ -138,23 +139,42 @@ bool checkPIN(char *pin_input);
 void startTimeoutTimer();
 
 /**
- * @brief Resets/stops the timer counting the time since last keypress.
+ * @brief Stops the timer counting the time since last keypress.
  * Called at initialization, when the timer reaches defined time limit, or when PIN is rejected or accepted.
  */
-void resetTimeoutTimer();
+void stopTimeoutTimer();
 
 /**
- * @brief Checks if it has been too long since the last keypress. If yes, rejects the PIN.
+ * @brief Checks if it has been too long since the last keypress.
  * @return true If it has been too long.
  * @return false If it hasn't been too long.
  */
 bool tooLongSinceLastKeypress();
 
 /**
- * @brief Prints a 4x4 array of zeroes and ones represeting the keypad key status. 
- * Ones marking a key in the keypad being currently pressed down.
+ * @brief Resets the PIN due to it being too long since last keypress. Shows yellow led, 
+ * and plays error sound effect.
  */
-void printKeyStatus();
+void timeoutPIN();
+
+/**
+ * @brief Returns the current time in seconds using Linux time.
+ * Does some minor math to get the total time in seconds.
+ *  
+ * Example: fullSeconds + (extraNanoSeconds / 1e9) = finalTime
+ *                    5 + (350000000 / 1000000000) = 5.35.
+ * 
+ * @return double Current time in seconds.
+ */
+double getCurrentTimeInSeconds();
+
+/**
+ * @brief Checks if enough time has passed since last keypadUpdate to update again.
+ * 
+ * @return true If enough time has passed.
+ * @return false If not enough time has passed.
+ */
+bool enoughTimeSinceLastKeypadUpdate();
 
 
 
@@ -176,6 +196,14 @@ void initializeKeypad();
  * @brief Frees all arrays used by keypad requiring malloc/calloc.
  */
 void cleanupKeypad();
+
+
+
+/**
+ * @brief Prints a 4x4 array of zeroes and ones represeting the keypad key status. 
+ * Ones marking a key in the keypad being currently pressed down.
+ */
+void printKeyStatus();
 
 
 

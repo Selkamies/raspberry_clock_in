@@ -6,10 +6,11 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.c.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-29
+ * @date Modified 2023-11-30
  * 
  * @copyright Copyright (c) 2023
  * 
+ * TODO: Start using the linux timer with time since last keypress.
  * TODO: Take keypad input on release instead of press?
  * TODO: Allow PINs of different lengths, some key in the keypad checks the pin.
  * TODO: Instead of clearing the PIN inputs, just keep last X keys and keep checking until success or timeout?
@@ -47,12 +48,8 @@ static struct Keypad keypadState;
 
 void updateKeypad()
 {
-    // TODO: difftime only returns full seconds.
-    //time_t currentTime = time(NULL);
-    //double timeSinceLastUpdate = difftime(currentTime, keypadState.lastUpdateTime);
-
-    //if (keypadState.lastUpdateTime != 0 && timeSinceLastUpdate >= keypadState.updateInterval)
-    //{
+    if (enoughTimeSinceLastKeypadUpdate())
+    {
         updateKeypadStatus();
 
         if (keypadState.exactlyOneKeyPressed && keypadState.noKeysPressedPreviously)
@@ -60,21 +57,15 @@ void updateKeypad()
             storeKeyPress(keypadState.keyPressed);
         }
 
-        if (keypadState.anyKeysPressed)
+        keypadState.noKeysPressedPreviously = !keypadState.anyKeysPressed;
+
+        if (tooLongSinceLastKeypress())
         {
-            keypadState.noKeysPressedPreviously = false;
+            timeoutPIN();
         }
 
-        else
-        {
-            keypadState.noKeysPressedPreviously = true;
-        }
-
-        //printf("Time since last update: %.2f\n", timeSinceLastUpdate);
-        //keypadState.lastUpdateTime = currentTime;
-
-        tooLongSinceLastKeypress();
-    //}
+        keypadState.lastUpdateTime = getCurrentTimeInSeconds();
+    }
 } 
 
 void updateKeypadStatus()
@@ -133,72 +124,29 @@ void updateKeypadStatus()
 
 
 
-// Old code.
-/* void updateKeypad()
-{
-    // The key that was pressed, like "1" or "#".
-    char pressedKey = EMPTY_KEY;
-
-    for (int row = 0; row < keypadConfig.KEYPAD_ROWS; row++)
-    {
-        // Disable the current row to check if any key in this row is pressed.
-        turnGPIOPinOff(keypadPins.keypad_rows[row]);
-
-        // Check every column pin to see if a key in this row is pressed.
-        for (int column = 0; column < keypadConfig.KEYPAD_COLUMNS; column++)
-        {
-            // Row off and column off means the key in the intersection is pressed.
-            bool keyNowPressed = isGPIOPinOn(keypadPins.keypad_columns[column]);
-
-            // Key is pressed, but was not previously.
-            if (keyNowPressed && !keypadState.keysPressedPreviously[row][column])
-            {
-                //printf("Key now pressed %d, previously %d\n", keyNowPressed, keypadState.keysPressedPreviously[row][column]);
-
-                pressedKey = keypadState.keys[row][column];
-                keypadState.keysPressedPreviously[row][column] = true;
-                storeKeyPress(pressedKey);
-            }
-
-            // Key was pressed previously, but is not now.
-            else if (!keyNowPressed && keypadState.keysPressedPreviously[row][column])
-            {
-                //printf("Key not pressed %d, previously %d\n", keyNowPressed, keypadState.keysPressedPreviously[row][column]);
-                keypadState.keysPressedPreviously[row][column] = false;
-            }
-        }
-
-        // Enable the current row to check the next one.
-        turnGPIOPinOn(keypadPins.keypad_rows[row]);
-    }
-
-    tooLongSinceLastKeypress();
-}  */
-
-
-
 void storeKeyPress(char key)
 {
-    // Just in case
+    // TODO: Check if a led is on?
+    // If the there's a led still on, turn it off when we get the first input.
     turnLedsOff();
 
     // Save the pressed key and record the time.
     currentPinState.keyPresses[currentPinState.nextPressIndex] = key;
     startTimeoutTimer();
 
-    printf("Index %d of PIN entered. Character %c.\n", currentPinState.nextPressIndex, key);
+    printf("Index %d / %d of PIN entered. Character %c.\n", currentPinState.nextPressIndex, keypadConfig.MAX_PIN_LENGTH - 1, key);
 
     currentPinState.nextPressIndex++;
 
-    // If the next key press index would be at the pin length, 
-    // we just received the last key for the PIN (by length).
+    // If the next key press index would be at the pin length, we just received the last key for the PIN (by length).
     // Check the pin for validity and clear the saved pin.
     if (currentPinState.nextPressIndex >= keypadConfig.MAX_PIN_LENGTH)
     {
-        if (checkPIN(currentPinState.keyPresses))
+        if (validPIN(currentPinState.keyPresses))
         {
             // TODO: Do database things.
             printf("\nCORRECT PIN! - %s \n\n", currentPinState.keyPresses);
+
             turnLedOn(false, true, false);
             playSound(SOUND_BEEP_SUCCESS);
         }
@@ -206,12 +154,13 @@ void storeKeyPress(char key)
         else
         {
             printf("\nPIN REJECTED! - %s \n\n", currentPinState.keyPresses);
+
             turnLedOn(true, false, false);
             playSound(SOUND_BEEP_ERROR);
         }
 
         clearPIN();
-        resetTimeoutTimer();
+        stopTimeoutTimer();
     }
 
     else
@@ -222,7 +171,7 @@ void storeKeyPress(char key)
 
 void clearPIN()
 {
-    currentPinState.lastKeyPressTime = EMPTY_TIMESTAMP;
+    //currentPinState.lastKeyPressTime = EMPTY_TIMESTAMP;
     currentPinState.nextPressIndex = 0;
 
     for (int pinIndex = 0; pinIndex < keypadConfig.MAX_PIN_LENGTH; pinIndex++)
@@ -231,7 +180,7 @@ void clearPIN()
     }
 }
 
-bool checkPIN(char *pin_input)
+bool validPIN(char *pin_input)
 {
     // TODO: Check if we find user with this PIN from database.
     if (strcmp(pin_input, "123A") == 0)
@@ -249,33 +198,36 @@ bool checkPIN(char *pin_input)
 void startTimeoutTimer()
 {
     currentPinState.lastPressTimerOn = true;
-    currentPinState.lastKeyPressTime = time(NULL);
+    currentPinState.lastKeyPressTime = getCurrentTimeInSeconds();
 }
 
-void resetTimeoutTimer()
+void stopTimeoutTimer()
 {
     currentPinState.lastPressTimerOn = false;
-    currentPinState.lastKeyPressTime = EMPTY_TIMESTAMP;
+    //currentPinState.lastKeyPressTime = EMPTY_TIMESTAMP;
+}
+
+void timeoutPIN()
+{
+    // Yellow led.
+    turnLedOn(true, true, false);
+    clearPIN();
+    stopTimeoutTimer();
+
+    playSound(SOUND_BEEP_ERROR);
+
+    printf("\nToo long since last keypress, resetting PIN.\n\n");
 }
 
 bool tooLongSinceLastKeypress()
 {
     if (currentPinState.lastPressTimerOn)
     {
-        time_t currentTime = time(NULL);
-        double timeSinceLastKeyPress = difftime(currentTime, currentPinState.lastKeyPressTime);
+        double currentTimeInSeconds = getCurrentTimeInSeconds();
+        double timeSinceLastKeyPress = currentTimeInSeconds - currentPinState.lastKeyPressTime;
 
-        if (currentPinState.lastKeyPressTime != 0 && timeSinceLastKeyPress >= keypadConfig.KEYPRESS_TIMEOUT)
+        if (timeSinceLastKeyPress >= keypadConfig.KEYPRESS_TIMEOUT)
         {
-            // Yellow led.
-            turnLedOn(true, true, false);
-            clearPIN();
-            resetTimeoutTimer();
-
-            playSound(SOUND_BEEP_ERROR);
-
-            printf("\nToo long since last keypress, resetting PIN.\n\n");
-
             return true;
         }
 
@@ -291,17 +243,31 @@ bool tooLongSinceLastKeypress()
     }
 }
 
-
-
-void printKeyStatus()
+double getCurrentTimeInSeconds()
 {
-    printf("\nKeys:\n");
+    struct timespec currentTime;
+    clock_gettime(CLOCK_REALTIME, &currentTime);
 
-    for (int row = 0; row < keypadConfig.KEYPAD_ROWS; row++)
+    // Adds up the amount of seconds (whole number) and amount of nanoseconds converted to seconds (double).
+    return currentTime.tv_sec + (currentTime.tv_nsec / 1e9);
+}
+
+bool enoughTimeSinceLastKeypadUpdate() 
+{
+    double currentTimeInSeconds = getCurrentTimeInSeconds();
+    double timeSinceLastKeypadUpdate = currentTimeInSeconds - keypadState.lastUpdateTime;
+
+    if (timeSinceLastKeypadUpdate >= keypadState.updateInterval)
     {
-        printf("%d %d %d %d\n", keypadState.keysPressedPreviously[row][0], keypadState.keysPressedPreviously[row][1], 
-                                keypadState.keysPressedPreviously[row][2], keypadState.keysPressedPreviously[row][3]);
+        return true;
     }
+
+    else
+    {
+        return false;
+    }
+
+    //return ((currentTimeInSeconds - keypadState.lastUpdateTime) >= keypadState.updateInterval);
 }
 
 
@@ -323,7 +289,7 @@ void initializeKeypad()
     printf("Initializing keypad.\n");
 
     currentPinState.nextPressIndex = 0;
-    resetTimeoutTimer();
+    stopTimeoutTimer();
 
     // Initializes the array holding the characters used in the current PIN.
     currentPinState.keyPresses = calloc(keypadConfig.MAX_PIN_LENGTH, sizeof(char));
@@ -346,8 +312,9 @@ void initializeKeypad()
     keypadState.keyPressed = EMPTY_KEY;
     keypadState.exactlyOneKeyPressed = false;
     keypadState.anyKeysPressed = false;
-    keypadState.lastUpdateTime = time(NULL);
-    keypadState.updateInterval = 1.0;
+    keypadState.lastUpdateTime = getCurrentTimeInSeconds();
+    // TODO: Read this from file.
+    keypadState.updateInterval = 0.1;
 
     if (keypadState.keys == NULL) 
     {
@@ -419,4 +386,17 @@ void cleanupKeypad()
     keypadState.keysPressedPreviously = NULL;
 
     cleanupKeypadGPIOPins(&keypadPins, &keypadConfig);
+}
+
+
+
+void printKeyStatus()
+{
+    printf("\nKeys:\n");
+
+    for (int row = 0; row < keypadConfig.KEYPAD_ROWS; row++)
+    {
+        printf("%d %d %d %d\n", keypadState.keysPressedPreviously[row][0], keypadState.keysPressedPreviously[row][1], 
+                                keypadState.keysPressedPreviously[row][2], keypadState.keysPressedPreviously[row][3]);
+    }
 }
