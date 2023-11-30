@@ -46,9 +46,8 @@ struct CurrentPinInput
     int nextPressIndex;
     /** @brief Whether key was recently pressed and we are counting until timeout. */
     bool lastPressTimerOn;
-    /** @brief Time since the last key was pressed. */
+    /** @brief Time when the last key was pressed. */
     double lastKeyPressTime;
-    //time_t lastKeyPressTime;
     /** @brief Array holding the PIN being entered. */
     char *keyPresses;
 };
@@ -158,6 +157,8 @@ void updateKeypad()
     {
         updateKeypadStatus();
 
+        //printKeyStatus();
+
         if (keypadState.exactlyOneKeyPressed && keypadState.noKeysPressedPreviously)
         {
             storeKeyPress(keypadState.keyPressed);
@@ -193,19 +194,20 @@ static void updateKeypadStatus()
             if (keyNowPressed)
             {
                 keypadState.keyPressed = keypadState.keys[row][column];
-                keypadState.anyKeysPressed = true;
+                //keypadState.anyKeysPressed = true;
 
                 keysNowPressedCount++;
 
                 // More than one key is pressed down at the same time, we don't accept ambigious input.
-                if (keysNowPressedCount > 1)
+                /* if (keysNowPressedCount > 1)
                 {
+                    printf("Too many keys pressed.\n");
                     keypadState.exactlyOneKeyPressed = false;
                     // This isn't necessary, but we should probably do it just in case.
                     keypadState.keyPressed = EMPTY_KEY;
 
                     return;
-                }
+                } */
             }
 
             keypadState.keysPressedPreviously[row][column] = keyNowPressed;
@@ -215,16 +217,28 @@ static void updateKeypadStatus()
         turnGPIOPinOn(keypadPins.keypad_rows[row]);
     }
 
-    if (keysNowPressedCount == 1)
+    if (keysNowPressedCount == 0)
     {
-        keypadState.exactlyOneKeyPressed = true;
-    }
-
-    else if (keysNowPressedCount == 0)
-    {
+        //printf("No keys pressed.\n");
         keypadState.keyPressed = EMPTY_KEY;
         keypadState.anyKeysPressed = false;
         keypadState.exactlyOneKeyPressed = false; 
+    }
+
+    else if (keysNowPressedCount == 1)
+    {
+        //printf("Exactly one key pressed.\n");
+        keypadState.anyKeysPressed = true;
+        keypadState.exactlyOneKeyPressed = true;
+    }
+
+    if (keysNowPressedCount > 1)
+    {
+        //printf("Too many keys pressed.\n");
+        keypadState.anyKeysPressed = true;
+        keypadState.exactlyOneKeyPressed = false;
+        // This isn't necessary, but we should probably do it just in case.
+        keypadState.keyPressed = EMPTY_KEY;
     }
 }
 
@@ -376,11 +390,39 @@ static bool enoughTimeSinceLastKeypadUpdate()
 
 
 
-void setKeypadValues(struct KeypadConfig *config, struct KeypadGPIOPins *keyPins, char **keys)
+void setKeypadValues(struct KeypadConfig *config, struct KeypadGPIOPins *keyPins, char **keysParam)
 {
     keypadConfig = *config;
     keypadPins = *keyPins;    
-    //keypadState = *state;
+    //keypadState.keys = keys;
+
+    if (keysParam != NULL)
+    {
+        printf("keys:\n");
+
+        for (int row = 0; row < 4; row++)
+        {
+            for (int column = 0; column < 4; column++)
+            {
+                printf("%c ", keysParam[row][column]);
+            }
+            printf("\n");
+        }
+    }
+
+    if (keypadState.keys != NULL)
+    {
+        printf("\nkeypadState.keys:\n");
+
+        for (int row = 0; row < 4; row++)
+        {
+            for (int column = 0; column < 4; column++)
+            {
+                printf("%c ", keypadState.keys[row][column]);
+            }
+            printf("\n");
+        }
+    }
 
     initializeKeypadGPIOPins(&keypadPins, &keypadConfig);
 }
@@ -409,7 +451,6 @@ void initializeKeypad()
 
 
 
-    keypadState.keys = malloc(keypadConfig.KEYPAD_ROWS * sizeof(char*));
     keypadState.keysPressedPreviously = calloc(keypadConfig.KEYPAD_ROWS, sizeof(bool*));
     keypadState.noKeysPressedPreviously = false;
     keypadState.keyPressed = EMPTY_KEY;
@@ -419,11 +460,6 @@ void initializeKeypad()
     // TODO: Read this from file.
     keypadState.updateInterval = 0.1;
 
-    if (keypadState.keys == NULL) 
-    {
-        printf("\nERROR: Memory allocation failure in keypad.c, initializeKeyboard(), keypadState.keys!\n");
-    }
-
     if (keypadState.keysPressedPreviously == NULL) 
     {
         printf("\nERROR: Memory allocation failure in keypad.c, initializeKeyboard(), keypadState.keysPressedPreviously!\n");
@@ -431,13 +467,6 @@ void initializeKeypad()
 
     for (int index = 0; index < keypadConfig.KEYPAD_ROWS; index++) 
     {
-        keypadState.keys[index] = malloc(keypadConfig.KEYPAD_COLUMNS * sizeof(char));
-
-        if (keypadState.keys[index] == NULL) 
-        {
-            printf("\nERROR: Memory allocation failure in keypad.c, initializeKeyboard(), keypadState.keys[%d]!\n", index);
-        }
-
         // Initializes all pressed states to 0 (false).
         keypadState.keysPressedPreviously[index] = calloc(keypadConfig.KEYPAD_COLUMNS, sizeof(bool));
 
@@ -447,25 +476,65 @@ void initializeKeypad()
         }
     }
 
-    // TODO: Read these from file, this is temporary.
-    char keyArray[4][4] =
-    {
-        {'1', '2', '3', 'A'},
-        {'4', '5', '6', 'B'},
-        {'7', '8', '9', 'C'},
-        {'*', '0', '#', 'D'}
-    };
 
-    // Copy the values to keypadState.keys.
-    for (int row = 0; row < keypadConfig.KEYPAD_ROWS; row++) 
+
+    if (keypadState.keys == NULL)
     {
-        for (int column = 0; column < keypadConfig.KEYPAD_COLUMNS; column++) 
+        printf("Manually setting keys. \n");
+
+        keypadState.keys = malloc(keypadConfig.KEYPAD_ROWS * sizeof(char*));
+
+        for (int index = 0; index < keypadConfig.KEYPAD_ROWS; index++) 
         {
-            keypadState.keys[row][column] = keyArray[row][column];
+            keypadState.keys[index] = malloc(keypadConfig.KEYPAD_COLUMNS * sizeof(char));
+
+            if (keypadState.keys[index] == NULL) 
+            {
+                printf("\nERROR: Memory allocation failure in keypad.c, initializeKeyboard(), keypadState.keys[%d]!\n", index);
+            }
+        }
+
+        // TODO: Read these from file, this is temporary.
+        char keyArray[4][4] =
+        {
+            {'1', '2', '3', 'A'},
+            {'4', '5', '6', 'B'},
+            {'7', '8', '9', 'C'},
+            {'*', '0', '#', 'D'}
+        };
+
+        // Copy the values to keypadState.keys.
+        for (int row = 0; row < keypadConfig.KEYPAD_ROWS; row++) 
+        {
+            for (int column = 0; column < keypadConfig.KEYPAD_COLUMNS; column++) 
+            {
+                keypadState.keys[row][column] = keyArray[row][column];
+            }
         }
     }
 
-    turnLedsOff();
+
+
+    if (keypadState.keys == NULL) 
+    {
+        printf("\nERROR: Memory allocation failure in keypad.c, initializeKeyboard(), keypadState.keys!\n");
+    }
+
+    /* else
+    {
+        printf("\nkeypadState.keys:\n");
+
+        for (int row = 0; row < 4; row++)
+        {
+            for (int column = 0; column < 4; column++)
+            {
+                printf("%c ", keypadState.keys[row][column]);
+            }
+            printf("\n");
+        }
+    } */
+
+    //turnLedsOff();
 }
 
 void cleanupKeypad()

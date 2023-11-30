@@ -88,7 +88,7 @@ double getCurrentTimeInSeconds();
  * @param config Struct holding configuration variables used by keypad and PIN reading.
  * @param keyPins Struct holding the pin numbers for each row and column of the keypad.
  */
-void setKeypadValues(struct KeypadConfig *config, struct KeypadGPIOPins *keyPins, char **keys);
+void setKeypadValues(struct KeypadConfig *config, struct KeypadGPIOPins *keyPins, char **keysParam);
 
 /**
  * @brief Initializes all arrays used by keypad requiring malloc/calloc.

@@ -5,7 +5,7 @@
  * @brief Reads values from config.ini and sets them in a config struct in config.h.
  * 
  * @date Created 2023-11-14
- * @date Modified 2023-11-28
+ * @date Modified 2023-11-30
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -48,7 +48,7 @@ void readConfigFile()
     }
 
     struct ConfigData configData;
-    //configData.keypadState.keys = NULL;
+    configData.keypadKeys = NULL;
     //configData.keypadState.keysPressedPreviously = NULL;
 
     char line[MAX_LINE_LENGTH];
@@ -93,7 +93,7 @@ void readConfigFile()
 
     // Pass read variables to relevant files.
     //setKeypadValues(&configData.keypadConfig, &configData.keypadPins, &configData.keypadState);
-    setKeypadValues(&configData.keypadConfig, &configData.keypadPins, configData.keys);
+    setKeypadValues(&configData.keypadConfig, &configData.keypadPins, configData.keypadKeys);
     setLedVariables(&configData.ledPins, configData.ledStaysOnFor);
     setSoundsConfig(configData.audioDeviceID);
 
@@ -163,6 +163,13 @@ void readKeypadData(struct ConfigData *configData, char *key, char *value)
         configData->keypadPins.keypad_columns = calloc(configData->keypadConfig.KEYPAD_COLUMNS, sizeof(int));
     }
 
+    // TODO: Uncommenting even this causes all keys to be pressed all the time.
+    /* else if (strstr(key, "KEYPAD_ROW_") || strstr(key, "KEYPAD_COLUMN_"))
+    {
+
+    } */
+
+    
     /* else if (strstr(key, "KEYPAD_ROW_") || strstr(key, "KEYPAD_COLUMN_"))
     {
         int rowIndex, columnIndex;
@@ -172,23 +179,23 @@ void readKeypadData(struct ConfigData *configData, char *key, char *value)
             //printf("KEYPAD_ROW_%d_COLUMN_%d_KEY:\n", rowIndex, columnIndex);
 
             // Dynamically allocate memory for keys array if not already allocated.
-            if (configData->keys == NULL)
+            if (configData->keypadKeys == NULL)
             {
                 printf("Allocating %d rows.\n", configData->keypadConfig.KEYPAD_ROWS);
 
-                configData->keys = malloc(configData->keypadConfig.KEYPAD_ROWS * sizeof(char *));
+                configData->keypadKeys = malloc(configData->keypadConfig.KEYPAD_ROWS * sizeof(char *));
 
                 for (int row = 0; row < configData->keypadConfig.KEYPAD_ROWS; row++)
                 {
                     printf("Allocating row %d.\n", row);
-                    configData->keys[row] = malloc(configData->keypadConfig.KEYPAD_COLUMNS * sizeof(char));
+                    configData->keypadKeys[row] = malloc(configData->keypadConfig.KEYPAD_COLUMNS * sizeof(char));
                     // Initialize the keys to some default value.
                     //strcpy(configData->keys[rowIndex], '?');
                 }
             }
 
             // Store the key in the dynamically allocated keys array.
-            configData->keys[rowIndex][columnIndex] = value[0];
+            configData->keypadKeys[rowIndex][columnIndex] = value[0];
             printf("Setting key %c to indexes of %d, %d.\n", value[0], rowIndex, columnIndex);
         }
     } */
