@@ -5,7 +5,7 @@
  * @brief Reads values from config.ini and sets them in a config struct in config.h.
  * 
  * @date Created 2023-11-14
- * @date Modified 2023-11-30
+ * @date Modified 2023-12-01
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -162,73 +162,31 @@ void readKeypadData(struct ConfigData *configData, char *key, char *value)
         configData->keypadConfig.KEYPAD_COLUMNS = atoi(value);
         configData->keypadPins.keypad_columns = calloc(configData->keypadConfig.KEYPAD_COLUMNS, sizeof(int));
     }
-
-    // TODO: Uncommenting even this causes all keys to be pressed all the time.
-    /* else if (strstr(key, "KEYPAD_ROW_") || strstr(key, "KEYPAD_COLUMN_"))
-    {
-
-    } */
-
     
-    /* else if (strstr(key, "KEYPAD_ROW_") || strstr(key, "KEYPAD_COLUMN_"))
+    else if (strstr(key, "KEY_KEYPAD_ROW_"))
     {
         int rowIndex, columnIndex;
 
-        if (sscanf(key, "KEYPAD_ROW_%d_COLUMN_%d_KEY", &rowIndex, &columnIndex) == 2)
+        if (sscanf(key, "KEY_KEYPAD_ROW_%d_COLUMN_%d", &rowIndex, &columnIndex) == 2)
         {
-            //printf("KEYPAD_ROW_%d_COLUMN_%d_KEY:\n", rowIndex, columnIndex);
-
             // Dynamically allocate memory for keys array if not already allocated.
             if (configData->keypadKeys == NULL)
             {
-                printf("Allocating %d rows.\n", configData->keypadConfig.KEYPAD_ROWS);
-
                 configData->keypadKeys = malloc(configData->keypadConfig.KEYPAD_ROWS * sizeof(char *));
 
                 for (int row = 0; row < configData->keypadConfig.KEYPAD_ROWS; row++)
                 {
-                    printf("Allocating row %d.\n", row);
                     configData->keypadKeys[row] = malloc(configData->keypadConfig.KEYPAD_COLUMNS * sizeof(char));
-                    // Initialize the keys to some default value.
-                    //strcpy(configData->keys[rowIndex], '?');
                 }
             }
 
             // Store the key in the dynamically allocated keys array.
             configData->keypadKeys[rowIndex][columnIndex] = value[0];
-            printf("Setting key %c to indexes of %d, %d.\n", value[0], rowIndex, columnIndex);
         }
-    } */
+    }
 
-    /* else if (strstr(key, "KEYPAD_ROW_") || strstr(key, "KEYPAD_COLUMN_"))
-    {
-        int rowIndex, columnIndex;
 
-        if (sscanf(key, "KEYPAD_ROW_%d_COLUMN_%d_KEY", &rowIndex, &columnIndex) == 2)
-        {
-            // Dynamically allocate memory for keys array if not already allocated.
-            if (configData->keypadState.keys == NULL)
-            {
-                printf("Allocating %d rows.\n", configData->keypadConfig.KEYPAD_ROWS);
 
-                configData->keypadState.keysPressedPreviously = NULL;
-                configData->keypadState.keys = malloc(configData->keypadConfig.KEYPAD_ROWS * sizeof(char *));
-
-                for (int rowIndex = 0; rowIndex < configData->keypadConfig.KEYPAD_ROWS; rowIndex++)
-                {
-                    printf("Allocating row %d.\n", rowIndex);
-                    configData->keypadState.keys[rowIndex] = malloc(configData->keypadConfig.KEYPAD_COLUMNS * sizeof(char));
-                    // Initialize the keys to some default value.
-                    strcpy(configData->keypadState.keys[rowIndex], "?");
-                }
-            }
-
-            // Store the key in the dynamically allocated keys array.
-            configData->keypadState.keys[rowIndex][columnIndex] = value[0];
-            printf("Setting key %c to indexes of %d, %d.\n", value[0], rowIndex, columnIndex);
-        }
-    } */
- 
     ///////////////////////////////
     // [KEYPAD_GPIO_PIN_NUMBERS] //
     ///////////////////////////////

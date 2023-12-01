@@ -7,7 +7,7 @@
  * they were already marked as present or not. Users and logs are stored in a database.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-29
+ * @date Modified 2023-12-01
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -20,11 +20,11 @@
 
 #include <stdio.h>              // printf().
 
-#include "gpio_init.h"          // GPIO pin library (pigpio) initialization.
-#include "config_handler.h"     // Load config from config.ini.
-#include "keypad.h"             // Input handling.
-#include "leds.h"               // We update led status here.
-#include "sounds.h"
+#include "gpio_init.h"          // initializeGPIOLibrary(), sleepGPIOLibrary(), cleanupGPIOLibrary().
+#include "config_handler.h"     // readConfigFile().
+#include "keypad.h"             // initializeKeypad(), updatekeypad(), cleanupKeypad().
+#include "leds.h"               // initializeLeds(), updateLED().
+#include "sounds.h"             // initializeSounds(), cleanupSounds().
 
 
 
@@ -38,7 +38,7 @@ void mainLoop()
         updateKeypad();
         updateLED();
 
-        sleepGPIOLibrary(0.1);
+        sleepGPIOLibrary(0.01);
     }
 }
 

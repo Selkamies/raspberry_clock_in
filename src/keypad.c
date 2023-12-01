@@ -6,7 +6,7 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.c.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-30
+ * @date Modified 2023-12-01
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -23,9 +23,9 @@
 #include <string.h>             // strcmp()
 
 #include "keypad.h"
-#include "gpio_functions.h"     // All GPIO manipulation is here, currently using pigpio.
-#include "leds.h"               // For turning leds on or off.
-#include "sounds.h"
+#include "gpio_functions.h"     // turnGPIOPinOff(), turnGPIOPinOn(), isGPIOPinOn().
+#include "leds.h"               // turnLedOn(), turnLedsOff().
+#include "sounds.h"             // playSound().
 
 
 
@@ -394,35 +394,7 @@ void setKeypadValues(struct KeypadConfig *config, struct KeypadGPIOPins *keyPins
 {
     keypadConfig = *config;
     keypadPins = *keyPins;    
-    //keypadState.keys = keys;
-
-    if (keysParam != NULL)
-    {
-        printf("keys:\n");
-
-        for (int row = 0; row < 4; row++)
-        {
-            for (int column = 0; column < 4; column++)
-            {
-                printf("%c ", keysParam[row][column]);
-            }
-            printf("\n");
-        }
-    }
-
-    if (keypadState.keys != NULL)
-    {
-        printf("\nkeypadState.keys:\n");
-
-        for (int row = 0; row < 4; row++)
-        {
-            for (int column = 0; column < 4; column++)
-            {
-                printf("%c ", keypadState.keys[row][column]);
-            }
-            printf("\n");
-        }
-    }
+    keypadState.keys = keysParam;
 
     initializeKeypadGPIOPins(&keypadPins, &keypadConfig);
 }
@@ -476,62 +448,9 @@ void initializeKeypad()
         }
     }
 
-
-
-    if (keypadState.keys == NULL)
-    {
-        printf("Manually setting keys. \n");
-
-        keypadState.keys = malloc(keypadConfig.KEYPAD_ROWS * sizeof(char*));
-
-        for (int index = 0; index < keypadConfig.KEYPAD_ROWS; index++) 
-        {
-            keypadState.keys[index] = malloc(keypadConfig.KEYPAD_COLUMNS * sizeof(char));
-
-            if (keypadState.keys[index] == NULL) 
-            {
-                printf("\nERROR: Memory allocation failure in keypad.c, initializeKeyboard(), keypadState.keys[%d]!\n", index);
-            }
-        }
-
-        // TODO: Read these from file, this is temporary.
-        char keyArray[4][4] =
-        {
-            {'1', '2', '3', 'A'},
-            {'4', '5', '6', 'B'},
-            {'7', '8', '9', 'C'},
-            {'*', '0', '#', 'D'}
-        };
-
-        // Copy the values to keypadState.keys.
-        for (int row = 0; row < keypadConfig.KEYPAD_ROWS; row++) 
-        {
-            for (int column = 0; column < keypadConfig.KEYPAD_COLUMNS; column++) 
-            {
-                keypadState.keys[row][column] = keyArray[row][column];
-            }
-        }
-    }
-
-
-
-    if (keypadState.keys == NULL) 
+    /* if (keypadState.keys == NULL) 
     {
         printf("\nERROR: Memory allocation failure in keypad.c, initializeKeyboard(), keypadState.keys!\n");
-    }
-
-    /* else
-    {
-        printf("\nkeypadState.keys:\n");
-
-        for (int row = 0; row < 4; row++)
-        {
-            for (int column = 0; column < 4; column++)
-            {
-                printf("%c ", keypadState.keys[row][column]);
-            }
-            printf("\n");
-        }
     } */
 
     //turnLedsOff();
