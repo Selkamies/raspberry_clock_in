@@ -9,22 +9,12 @@
  * @date Modified 2023-12-04
  * 
  * @copyright Copyright (c) 2023
- * 
- * TODO: Which structs can be static and don't need to be in the header file?
- *       KeypadConfig and KeypadGPIOPins are used in config_handler, Keypad only receives partial stuff.
  */
 
 
 
 #ifndef KEYPAD_H
 #define KEYPAD_H
-
-
-
-/** @brief Default value used for empty characters when no character is received or set. */
-#define EMPTY_KEY '\0'
-/** @brief Default value used for timestamps when no time is recorded. */
-#define EMPTY_TIMESTAMP 0
 
 
 

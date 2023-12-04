@@ -5,24 +5,55 @@
  * @brief Handles playing sounds. 
  * 
  * @date Created 2023-11-24
- * @date Updated 2023-11-28
+ * @date Updated 2023-12-04
  * 
  * @copyright Copyright (c) 2023
  * 
  * TODO: SDL2 and SDL_mixer use the zlib license. Do we need to mention this and where?
  * TODO: Default audio device seems to be 3.5 mm audio jack, even though it has nothing plugged in.
  *       Try to choose a device that actually works.
- * TODO: Sound device id from config.ini?
  * TODO: Less magic numbers?
  */
 
 
 
-#include <stdio.h>
+#include <stdio.h>              // printf().
 
-#include "SDL2/SDL.h"           
+#include "SDL2/SDL.h"
+#include "SDL2/SDL_mixer.h"     // SDL_mixer handles playing sound files. Needed here for Mix_Chunk.
 
 #include "sounds.h"
+
+
+
+#pragma region Globals
+
+/**
+ * @brief Struct holding SDL_mixer sound chunks for the different sounds.
+ */
+struct SoundChunks
+{
+    /** @brief .wav file loaded to chunk used by SDL_mixer. Used for normal beep when pressing keypad numbers. */
+    Mix_Chunk *beepNormal;
+    /** @brief .wav file loaded to chunk used by SDL_mixer. Used after correct PIN has been entered. */
+    Mix_Chunk *beepSuccess;
+    /** @brief .wav file loaded to chunk used by SDL_mixer. Used for after timeout or wrong PIN has been entered. */
+    Mix_Chunk *beepError;
+};
+
+
+
+#define SOUNDS_FOLDER_PATH "./../sounds/"
+// For release?
+//#define SOUNDS_FOLDER_PATH "./sounds/"
+
+#define BEEP_NORMAL_FILE_NAME "beep_input.wav"
+#define BEEP_SUCCESS_FILE_NAME "beep_success.wav"
+#define BEEP_ERROR_FILE_NAME "beep_error.wav"
+
+#define BEEP_NORMAL_FILE_PATH (SOUNDS_FOLDER_PATH BEEP_NORMAL_FILE_NAME)
+#define BEEP_SUCCESS_FILE_PATH (SOUNDS_FOLDER_PATH BEEP_SUCCESS_FILE_NAME)
+#define BEEP_ERROR_FILE_PATH (SOUNDS_FOLDER_PATH BEEP_ERROR_FILE_NAME)
 
 
 
@@ -31,10 +62,27 @@ struct SoundChunks sounds;
 
 int manualAudioDeviceID;
 
+#pragma endregion // Globals
+
+
+
+#pragma region FunctionDeclarations
+
+/**
+ * @brief Selects either the default audio device or manually set audio device with specified id.
+ * 
+ * @return SDL_AudioDeviceID The SDL audio device id number selected. integer.
+ */
+static SDL_AudioDeviceID selectAudioDeviceID();
+
+#pragma endregion // FunctionDeclarations
+
 
 
 void initializeSounds()
 {
+    printf("Initializing sounds.\n");
+
     if (SDL_Init(SDL_INIT_AUDIO) < 0)
     {
         printf("Failed to init SDL\n");
@@ -80,7 +128,7 @@ void setSoundsConfig(int manualDeviceID)
     manualAudioDeviceID = manualDeviceID;
 }
 
-SDL_AudioDeviceID selectAudioDeviceID()
+static SDL_AudioDeviceID selectAudioDeviceID()
 {
     SDL_AudioDeviceID deviceId;
 

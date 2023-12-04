@@ -31,6 +31,13 @@
 
 #pragma region Globals
 
+/** @brief Default value used for empty characters when no character is received or set. */
+#define EMPTY_KEY '\0'
+/** @brief Default value used for timestamps when no time is recorded. */
+#define EMPTY_TIMESTAMP 0
+
+
+
 /* GPIO pin numbers of the keypad row and column pins. */
 struct KeypadGPIOPins keypadPins;
 
