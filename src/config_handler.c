@@ -27,16 +27,43 @@
 
 
 
+#pragma region Globals
+
 /** @brief Maximum length of the key like MAX_PIN_LENGTH. */
 #define MAX_KEY_LENGTH 50
 /** @brief Maximum length of the value like "10". */
 #define MAX_VALUE_LENGTH 50
 /** @brief Maximum length of the line with key and value like MAX_PIN_LENGTH = 4 */
-#define MAX_LINE_LENGTH 150
+#define MAX_LINE_LENGTH 110
+
+#define SECTION_KEYPAD "KEYPAD"
+#define SECTION_KEYPAD_KEYS "KEYPAD_KEYS"
+#define SECTION_KEYPAD_GPIO "KEYPAD_GPIO_PIN_NUMBERS"
+#define SECTION_LED "LED"
+#define SECTION_LED_GPIO "LED_GPIO_PIN_NUMBERS"
+#define SECTION_SOUNDS "SOUNDS"
+
+#define KEY_MAX_PIN_LENGTH "MAX_PIN_LENGTH"
+#define KEY_KEYPRESS_TIMEOUT "KEYPRESS_TIMEOUT"
+#define KEY_KEYPAD_ROWS "KEYPAD_ROWS"
+#define KEY_KEYPAD_COLUMNS "KEYPAD_COLUMNS"
+#define KEY_KEYPAD_UPDATE_INVERVAL "KEYPAD_UPDATE_INTERVAL_SECONDS"
+
+#define KEY_PREFIX_KEY_KEYPAD_ROW_D_COLUMN_D "KEY_KEYPAD_ROW_"
+#define KEY_KEYPAD_KEY_ROW_D_COLUMN_D "KEY_KEYPAD_ROW_%d_COLUMN_%d"
+#define KEY_PREFIX_KEYPAD_ROW_D "KEYPAD_ROW_"
+#define KEY_KEYPAD_ROW_D "KEYPAD_ROW_%d"
+#define KEY_PREFIX_KEYPAD_COLUMN_D "KEYPAD_COLUMN_"
+#define KEY_KEYPAD_COLUMN_D "KEYPAD_COLUMN_%d"
+
+#define KEY_LED_STAYS_ON_FOR "LED_STAYS_ON_FOR"
+#define KEY_LED_RED_GPIO "LED_RED"
+#define KEY_LED_GREEN_GPIO "LED_GREEN"
+#define KEY_LED_BLUE_GPIO "LED_BLUE"
+
+#define KEY_AUDIO_DEVICE_ID "AUDIO_DEVICE_ID"
 
 
-
-#pragma region Globals
 
 /**
  * @brief Struct holding all values read from config.ini. Relevant values are passed to files
@@ -214,13 +241,12 @@ static void readLines(FILE *file, struct ConfigData *configData)
         // Value for the key as a string. Example: "4"
         char value[MAX_VALUE_LENGTH];
 
-        // sscanf parses data from a string, here it reads KEY and VALUE from KEY = VALUE.
-        // Then it assings the values to the keyValuePair.
+        // sscanf parses data from a string (line), here it reads KEY and VALUE from KEY = VALUE.
         if (sscanf(line, keyValueFormatString, key, value) == 2) 
         {
-            printf("Key '%s', Value: '%s'\n", key, value);
+            printf("Section: '%s', Key: '%s', Value: '%s'\n", currentSection, key, value);
             
-            // Save the values to config struct.
+            // Save the value to config struct.
             setConfigValue(configData, currentSection, key, value);
         }
     }
@@ -240,7 +266,6 @@ static bool isSectionChangeLine(const char *line, const char *sectionFormatStrin
 {
     if (line[0] == '[' && sscanf(line, sectionFormatString, currentSection) == 1) 
     {
-        printf("Section: '%s'\n", currentSection);
         return true; 
     }
 
@@ -251,20 +276,20 @@ static bool isSectionChangeLine(const char *line, const char *sectionFormatStrin
 
 static void setConfigValue(struct ConfigData *configData, const char *section, const char *key, const char *value)
 {
-    if (strcmp(section, "KEYPAD_GPIO_PIN_NUMBERS") == 0 || 
-        strcmp(section, "KEYPAD") == 0 ||
-        strcmp(section, "KEYPAD_KEYS") == 0)
+    if (strcmp(section, SECTION_KEYPAD) == 0 ||
+        strcmp(section, SECTION_KEYPAD_KEYS) == 0 ||
+        strcmp(section, SECTION_KEYPAD_GPIO) == 0)
     {
         readKeypadData(configData, key, value);
     }
 
-    else if (strcmp(section, "LED_GPIO_PIN_NUMBERS") == 0 ||
-             strcmp(section, "LED") == 0)
+    else if (strcmp(section, SECTION_LED) == 0 || 
+             strcmp(section, SECTION_LED_GPIO) == 0)
     {
         readLEDData(configData, key, value);
     }
 
-    else if (strcmp(section, "SOUNDS") == 0)
+    else if (strcmp(section, SECTION_SOUNDS) == 0)
     {
         readSoundData(configData, key, value);
     }
@@ -276,29 +301,29 @@ static void readKeypadData(struct ConfigData *configData, const char *key, const
     // [KEYPAD] //
     //////////////
 
-    if (strcmp(key, "MAX_PIN_LENGTH") == 0)
+    if (strcmp(key, KEY_MAX_PIN_LENGTH) == 0)
     {
         configData->keypadConfig.MAX_PIN_LENGTH = atoi(value);
     }
 
-    else if (strcmp(key, "KEYPRESS_TIMEOUT") == 0)
+    else if (strcmp(key, KEY_KEYPRESS_TIMEOUT) == 0)
     {
         configData->keypadConfig.KEYPRESS_TIMEOUT = atoi(value);
     }
 
-    else if (strcmp(key, "KEYPAD_ROWS") == 0)
+    else if (strcmp(key, KEY_KEYPAD_ROWS) == 0)
     {
         configData->keypadConfig.KEYPAD_ROWS = atoi(value);
         configData->keypadPins.keypad_rows = calloc(configData->keypadConfig.KEYPAD_ROWS, sizeof(int));
     }
 
-    else if (strcmp(key, "KEYPAD_COLUMNS") == 0)
+    else if (strcmp(key, KEY_KEYPAD_COLUMNS) == 0)
     {
         configData->keypadConfig.KEYPAD_COLUMNS = atoi(value);
         configData->keypadPins.keypad_columns = calloc(configData->keypadConfig.KEYPAD_COLUMNS, sizeof(int));
     }
 
-    else if (strcmp(key, "UPDATE_INTERVAL_SECONDS") == 0)
+    else if (strcmp(key, KEY_KEYPAD_UPDATE_INVERVAL) == 0)
     {
         configData->keypadConfig.UPDATE_INTERVAL_SECONDS = strtod(value, NULL);
     }
@@ -307,11 +332,15 @@ static void readKeypadData(struct ConfigData *configData, const char *key, const
     // [KEYPAD_KEYS] //
     ///////////////////
     
-    else if (strstr(key, "KEY_KEYPAD_ROW_"))
+    // strstr(key, string) looks for key in the string. 
+    // if (strstr(key, string)) == key returns true if the key is in the beginning of the string.
+    // if (strstr(key, string)) returns true if the key is anywhere in the string.
+    else if (strstr(key, KEY_PREFIX_KEY_KEYPAD_ROW_D_COLUMN_D) == key)
     {
         int rowIndex, columnIndex;
 
-        if (sscanf(key, "KEY_KEYPAD_ROW_%d_COLUMN_%d", &rowIndex, &columnIndex) == 2)
+        // Gets the row and column indexes from the key.
+        if (sscanf(key, KEY_KEYPAD_KEY_ROW_D_COLUMN_D, &rowIndex, &columnIndex) == 2)
         {
             // Dynamically allocate memory for keys array if not already allocated.
             if (configData->keypadKeys == NULL)
@@ -333,56 +362,64 @@ static void readKeypadData(struct ConfigData *configData, const char *key, const
     // [KEYPAD_GPIO_PIN_NUMBERS] //
     ///////////////////////////////
 
-    // strstr() looks for "KEYPAD_ROW_" from "KEYPAD_ROW_0" etc.
-    else if (strstr(key, "KEYPAD_ROW_") == key)
+    else if (strstr(key, KEY_PREFIX_KEYPAD_ROW_D) == key)
     {
-        // Dynamically determine the row index from the key.
-        int rowIndex = atoi(key + strlen("KEYPAD_ROW_"));
-        configData->keypadPins.keypad_rows[rowIndex] = atoi(value);
+        int rowIndex;
+
+        // Gets the row index from the key.
+        if (sscanf(key, KEY_KEYPAD_ROW_D, &rowIndex) == 1)
+        {
+            configData->keypadPins.keypad_rows[rowIndex] = atoi(value);
+        }
     }
 
-    else if (strstr(key, "KEYPAD_COLUMN_") == key)
+    else if (strstr(key, KEY_PREFIX_KEYPAD_COLUMN_D) == key)
     {
-        // Dynamically determine the column index from the key.
-        int columnIndex = atoi(key + strlen("KEYPAD_COLUMN_"));
-        configData->keypadPins.keypad_columns[columnIndex] = atoi(value);
+        int columnIndex;
+
+        // Gets the column index from the key.
+        if (sscanf(key, KEY_KEYPAD_COLUMN_D, &columnIndex) == 1)
+        {
+            configData->keypadPins.keypad_columns[columnIndex] = atoi(value);
+        }
+        
     }
 }
 
 static void readLEDData(struct ConfigData *configData, const char *key, const char *value)
 {
-    ////////////////////////////
-    // [LED_GPIO_PIN_NUMBERS] //
-    ////////////////////////////
-
-    if (strcmp(key, "LED_RED") == 0)
-    {
-        configData->ledPins.LED_RED = atoi(value);
-    }
-
-    else if (strcmp(key, "LED_GREEN") == 0)
-    {
-        configData->ledPins.LED_GREEN = atoi(value);
-    }
-
-    else if (strcmp(key, "LED_BLUE") == 0)
-    {
-        configData->ledPins.LED_BLUE = atoi(value);
-    }
-
     ///////////
     // [LED] //
     ///////////
 
-    else if (strcmp(key, "LED_STAYS_ON_FOR") == 0)
+    if (strcmp(key, KEY_LED_STAYS_ON_FOR) == 0)
     {
         configData->ledStaysOnFor = atoi(value);
+    }
+
+    ////////////////////////////
+    // [LED_GPIO_PIN_NUMBERS] //
+    ////////////////////////////
+
+    else if (strcmp(key, KEY_LED_RED_GPIO) == 0)
+    {
+        configData->ledPins.LED_RED = atoi(value);
+    }
+
+    else if (strcmp(key, KEY_LED_GREEN_GPIO) == 0)
+    {
+        configData->ledPins.LED_GREEN = atoi(value);
+    }
+
+    else if (strcmp(key, KEY_LED_BLUE_GPIO) == 0)
+    {
+        configData->ledPins.LED_BLUE = atoi(value);
     }
 }
 
 static void readSoundData(struct ConfigData *configData, const char *key, const char *value)
 {
-    if (strcmp(key, "AUDIO_DEVICE_ID") == 0)
+    if (strcmp(key, KEY_AUDIO_DEVICE_ID) == 0)
     {
         configData->audioDeviceID = atoi(value);
     }
