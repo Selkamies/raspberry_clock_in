@@ -2,43 +2,166 @@
  * @file config_handler.c
  * @author Selkamies
  * 
- * @brief Reads values from config.ini and sets them in a config struct in config.h.
+ * @brief Reads key-value pairs from config.ini and passes relevant values to other files.
  * 
  * @date Created 2023-11-14
- * @date Modified 2023-12-01
+ * @date Modified 2023-12-04
  * 
  * @copyright Copyright (c) 2023
  * 
- * TODO: Read keypad keys from file.
- * TODO: Any way to reduce hardcoded strings? 
- *       " %100[^=]=%100[^\n]" should replace 100 with MAX_LINE_LENGTH.
- *       setConfigValue uses hardcoded comparisons. Any way to just compare the key and struct members?
  * TODO: Look for config.ini in a few places. First in the same folder, then under config folder?
  */
 
 
 
-#include <stdio.h>
-#include <ctype.h>      // isspace().
-#include <stdlib.h>     // atoi() for converting string to int.
+#include <stdio.h>      // printf(), snprintf().
+#include <stdlib.h>     // atoi(), strtod().
 #include <string.h>     // strcmp(), strstr(), sscanf().
 
 #include "config_handler.h"
 
+// These are the files that we pass the values read from config.ini to.
+#include "keypad.h"
+#include "leds.h"
 #include "sounds.h"
 
 
 
+/** @brief Maximum length of the key like MAX_PIN_LENGTH. */
+#define MAX_KEY_LENGTH 50
+/** @brief Maximum length of the value like "10". */
+#define MAX_VALUE_LENGTH 50
+/** @brief Maximum length of the line with key and value like MAX_PIN_LENGTH = 4 */
+#define MAX_LINE_LENGTH 150
+
+
+
+#pragma region Globals
+
+/**
+ * @brief Struct holding all values read from config.ini. Relevant values are passed to files
+ * that need them, and this struct is discarded after we have done passing them.
+ * 
+ */
+struct ConfigData
+{
+    //////////////
+    // keypad.c //
+    //////////////
+
+    struct KeypadConfig keypadConfig;
+    struct KeypadGPIOPins keypadPins;
+    // TODO: Two-dimensional malloc required.
+    //struct Keypad keypadState;
+    char **keypadKeys;
+    
+    ////////////
+    // leds.c //
+    ////////////
+    
+    struct LedGPIOPins ledPins;
+    int ledStaysOnFor;
+
+    //////////////
+    // sounds.c //
+    //////////////
+
+    int audioDeviceID;
+};
+
+/**
+ * @brief Stores a key-value pair like MAX_PIN_LENGTH and "4". Read from config.ini.
+ */
+//struct KeyValuePair
+//{
+    /** @brief Key name of the key-value pair. Example: MAX_PIN_LENGTH */
+    //char key[MAX_KEY_LENGTH];
+    /** @brief Value for the key as a string. Example: "4" */
+    //char value[MAX_VALUE_LENGTH];
+//};
+
 const char *fileName = "../config/config.ini";
+
+#pragma endregion
+
+
+
+#pragma region FunctionDeclarations
+
+/**
+ * @brief Loops through all the lines in the file (config.ini), reads the key-value pairs
+ * and saves the values to a configData struct.
+ * 
+ * @param file File that we're reading. config.ini.
+ * @param configData Struct we're temporarily saving the values we're reading to.
+ */
+static void readLines(FILE *file, struct ConfigData *configData);
+
+/**
+ * @brief Checks if the line is either empty or a comment line.
+ * 
+ * @param line Raw line from config.ini.
+ * @return true If the line is skippable.
+ * @return false If the line is either section name line or key-value line.
+ */
+static bool isSkippableLine(const char *line);
+
+/**
+ * @brief Checks if the line is a section name line, and reads the name of the new section.
+ * 
+ * @param line Raw line from config.ini.
+ * @param sectionFormatString Formatting string used by sscanf() to parse section name from between brackets in a line.
+ * @param currentSection Name of the current section. Gets changed to the name of the new section.
+ * @return true If the line is a section change line.
+ * @return false If the line is not a section change line.
+ */
+static bool isSectionChangeLine(const char *line, const char *sectionFormatString, char *currentSection);
+
+/**
+ * @brief Reads the value read from config.ini to the correct place in configData struct. 
+ * Forwards the relevat portions of configData to other files.
+ * 
+ * @param configData Struct holding all the config values that are read from config.ini.
+ * @param section Name of the section the key-value pair is under.
+ * @param key Key name of the key-value pair. Example: MAX_PIN_LENGTH
+ * @param value Value for the key as a string. Example: "4"
+ */
+static void setConfigValue(struct ConfigData *configData, const char *section, const char *key, const char *value);
+
+/**
+ * @brief Reads the keypad config values read from config.ini to configData struct.
+ * 
+ * @param configData Struct holding all the config values that are read from config.ini.
+ * @param key Key name of the key-value pair. Example: MAX_PIN_LENGTH
+ * @param value Value for the key as a string. Example: "4"
+ */
+static void readKeypadData(struct ConfigData *configData, const char *key, const char *value);
+
+/**
+ * @brief Reads the LED config values read from config.ini to configData struct.
+ * 
+ * @param configData Struct holding all the config values that are read from config.ini.
+ * @param key Key name of the key-value pair. Example: MAX_PIN_LENGTH
+ * @param value Value for the key as a string. Example: "4"
+ */
+static void readLEDData(struct ConfigData *configData, const char *key, const char *value);
+
+/**
+ * @brief Reads the sound config values read from config.ini to configData struct.
+ * 
+ * @param configData Struct holding all the config values that are read from config.ini.
+ * @param key Key name of the key-value pair. Example: MAX_PIN_LENGTH
+ * @param value Value for the key as a string. Example: "4"
+ */
+static void readSoundData(struct ConfigData *configData, const char *key, const char *value);
+
+#pragma endregion
 
 
 
 void readConfigFile()
 {
-    printf("Loading config.ini.\n");
-    
-    //char *fileName = "config.ini";
-    char *fileName = "../config/config.ini";
+    printf("Reading config.ini.\n");
 
     FILE *file = fopen(fileName, "r");
     if (!file) 
@@ -47,24 +170,41 @@ void readConfigFile()
         return;
     }
 
+    // Struct for temporarily holding data read from config.ini. Destroyed after file reading ends.
     struct ConfigData configData;
-    configData.keypadKeys = NULL;
-    //configData.keypadState.keysPressedPreviously = NULL;
 
+    readLines(file, &configData);
+
+    // Pass read variables to relevant files.
+    setKeypadValues(&configData.keypadConfig, &configData.keypadPins, configData.keypadKeys);
+    setLedVariables(&configData.ledPins, configData.ledStaysOnFor);
+    setSoundsConfig(configData.audioDeviceID);
+
+    fclose(file);
+}
+
+static void readLines(FILE *file, struct ConfigData *configData)
+{
+    // Raw line read from config.ini.
     char line[MAX_LINE_LENGTH];
-    //char firstChar = line[0];
+    // Name of the current section in config.ini.
     char currentSection[MAX_KEY_LENGTH];
+    // Formatting string used by sscanf() to parse section name from between brackets in a line.
+    char sectionFormatString[MAX_LINE_LENGTH];
+    snprintf(sectionFormatString, sizeof(sectionFormatString), " [%%%d[^]]]", MAX_KEY_LENGTH - 1);
+    // Formatting string used by sscanf() to parse keys and values from a line.
+    char keyValueFormatString[MAX_LINE_LENGTH];
+    // Reads key until first whitespace or equals sign, then reads the value from after equals sign adn whitespaces.
+    snprintf(keyValueFormatString, sizeof(keyValueFormatString), " %%%d[^= ] = %%%d[^\n]", MAX_KEY_LENGTH - 1, MAX_VALUE_LENGTH - 1);
 
     while (fgets(line, sizeof(line), file)) 
     {
-        // Skip comments and empty lines
-        if (line[0] == ';' || line[0] == '#' || line[0] == '\n' || line[0] == '\r') 
+        if (isSkippableLine(line))
         {
             continue;
         }
 
-        // Check for section change. sscanf sets the currentSection.
-        if (line[0] == '[' && sscanf(line, "[%99[^]]]", currentSection) == 1) 
+        if (isSectionChangeLine(line, sectionFormatString, currentSection))
         {
             continue;
         }
@@ -74,42 +214,43 @@ void readConfigFile()
         // Value for the key as a string. Example: "4"
         char value[MAX_VALUE_LENGTH];
 
-        // sscanf parses data from a string. 
-        // It tries to find max length 100 of key part, =, and then max 100 length value part and a linebreak.
+        // sscanf parses data from a string, here it reads KEY and VALUE from KEY = VALUE.
         // Then it assings the values to the keyValuePair.
-        if (sscanf(line, " %100[^=]=%100[^\n]", key, value) == 2) 
+        if (sscanf(line, keyValueFormatString, key, value) == 2) 
         {
-            //sscanf(value, " %100[^\n]", value);
-
-            // TODO: Stripping leading whitespace doesn't work without strcpy for some reason.
-            strcpy(key, stripString(key));
-            strcpy(value, stripString(value));
-            //printf("After: '%s'\n", value);
+            printf("Key '%s', Value: '%s'\n", key, value);
             
             // Save the values to config struct.
-            setConfigValue(&configData, currentSection, key, value);
+            setConfigValue(configData, currentSection, key, value);
         }
     }
+}
 
-    // Pass read variables to relevant files.
-    //setKeypadValues(&configData.keypadConfig, &configData.keypadPins, &configData.keypadState);
-    setKeypadValues(&configData.keypadConfig, &configData.keypadPins, configData.keypadKeys);
-    setLedVariables(&configData.ledPins, configData.ledStaysOnFor);
-    setSoundsConfig(configData.audioDeviceID);
+static bool isSkippableLine(const char *line) 
+{
+    if (line[0] == ';' || line[0] == '#' || line[0] == '\n' || line[0] == '\r') 
+    {
+        return true; 
+    }
 
-    // TODO: We cannot free these here.
-    //free(configData.keypadPins.keypad_rows);
-    //free(configData.keypadPins.keypad_columns);
+    return false; 
+}
 
-    fclose(file);
+static bool isSectionChangeLine(const char *line, const char *sectionFormatString, char *currentSection) 
+{
+    if (line[0] == '[' && sscanf(line, sectionFormatString, currentSection) == 1) 
+    {
+        printf("Section: '%s'\n", currentSection);
+        return true; 
+    }
+
+    return false;
 }
 
 
 
-void setConfigValue(struct ConfigData *configData, char *section, char *key, char *value)
+static void setConfigValue(struct ConfigData *configData, const char *section, const char *key, const char *value)
 {
-    //printf("Reading value from section '%s'.\n", section);
-
     if (strcmp(section, "KEYPAD_GPIO_PIN_NUMBERS") == 0 || 
         strcmp(section, "KEYPAD") == 0 ||
         strcmp(section, "KEYPAD_KEYS") == 0)
@@ -120,7 +261,7 @@ void setConfigValue(struct ConfigData *configData, char *section, char *key, cha
     else if (strcmp(section, "LED_GPIO_PIN_NUMBERS") == 0 ||
              strcmp(section, "LED") == 0)
     {
-        readLedData(configData, key, value);
+        readLEDData(configData, key, value);
     }
 
     else if (strcmp(section, "SOUNDS") == 0)
@@ -129,7 +270,7 @@ void setConfigValue(struct ConfigData *configData, char *section, char *key, cha
     }
 }
 
-void readKeypadData(struct ConfigData *configData, char *key, char *value)
+static void readKeypadData(struct ConfigData *configData, const char *key, const char *value)
 {
     //////////////
     // [KEYPAD] //
@@ -137,19 +278,13 @@ void readKeypadData(struct ConfigData *configData, char *key, char *value)
 
     if (strcmp(key, "MAX_PIN_LENGTH") == 0)
     {
-        //config.MAX_PIN_LENGTH = atoi(value);
         configData->keypadConfig.MAX_PIN_LENGTH = atoi(value);
     }
 
     else if (strcmp(key, "KEYPRESS_TIMEOUT") == 0)
     {
-        //config.KEYPRESS_TIMEOUT = atoi(value);
         configData->keypadConfig.KEYPRESS_TIMEOUT = atoi(value);
     }
-
-    ///////////////////
-    // [KEYPAD_KEYS] //
-    ///////////////////
 
     else if (strcmp(key, "KEYPAD_ROWS") == 0)
     {
@@ -162,6 +297,15 @@ void readKeypadData(struct ConfigData *configData, char *key, char *value)
         configData->keypadConfig.KEYPAD_COLUMNS = atoi(value);
         configData->keypadPins.keypad_columns = calloc(configData->keypadConfig.KEYPAD_COLUMNS, sizeof(int));
     }
+
+    else if (strcmp(key, "UPDATE_INTERVAL_SECONDS") == 0)
+    {
+        configData->keypadConfig.UPDATE_INTERVAL_SECONDS = strtod(value, NULL);
+    }
+
+    ///////////////////
+    // [KEYPAD_KEYS] //
+    ///////////////////
     
     else if (strstr(key, "KEY_KEYPAD_ROW_"))
     {
@@ -185,8 +329,6 @@ void readKeypadData(struct ConfigData *configData, char *key, char *value)
         }
     }
 
-
-
     ///////////////////////////////
     // [KEYPAD_GPIO_PIN_NUMBERS] //
     ///////////////////////////////
@@ -207,7 +349,7 @@ void readKeypadData(struct ConfigData *configData, char *key, char *value)
     }
 }
 
-void readLedData(struct ConfigData *configData, char *key, char *value)
+static void readLEDData(struct ConfigData *configData, const char *key, const char *value)
 {
     ////////////////////////////
     // [LED_GPIO_PIN_NUMBERS] //
@@ -238,49 +380,10 @@ void readLedData(struct ConfigData *configData, char *key, char *value)
     }
 }
 
-void readSoundData(struct ConfigData *configData, char *key, char *value)
+static void readSoundData(struct ConfigData *configData, const char *key, const char *value)
 {
     if (strcmp(key, "AUDIO_DEVICE_ID") == 0)
     {
         configData->audioDeviceID = atoi(value);
     }
 }
-
-
-
-char *stripStringLeading(char *string)
-{
-    // Move the starting point forward until we find a non-whitespace character.
-    while(isspace(*string))
-    {
-        string++;
-    }
-
-    // If the string is now empty, return the original string.
-    if (*string == 0)
-    {
-        return string;
-    }
-    
-    return string;
-}
-
-char *stripStringTrailing(char *string)
-{
-    // Get a pointer to the last character of the string.
-    char *back = string + strlen(string);
-
-    // Loop backwards from the last character until we find a non-whitespace character.
-    while(isspace(*--back));
-
-    // Terminate the string at the new end.
-    *(back + 1) = '\0';
-
-    return string;
-}
-
-char *stripString(char *string)
-{
-    return stripStringTrailing(stripStringLeading(string));
-}
-

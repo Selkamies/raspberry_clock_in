@@ -6,7 +6,7 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.h.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-11-30
+ * @date Modified 2023-12-04
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -18,11 +18,6 @@
 
 #ifndef KEYPAD_H
 #define KEYPAD_H
-
-
-
-//#include <stdbool.h>
-//#include <time.h>
 
 
 
@@ -58,6 +53,8 @@ struct KeypadConfig
     int KEYPAD_ROWS;
     /** @brief Number of columns in the keypad. */
     int KEYPAD_COLUMNS;
+    /** @brief Minimum time between keypad updates in seconds. */
+    double UPDATE_INTERVAL_SECONDS;
 };
 
 

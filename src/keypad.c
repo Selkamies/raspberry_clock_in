@@ -6,7 +6,7 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.c.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-12-01
+ * @date Modified 2023-12-04
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -75,8 +75,6 @@ struct Keypad
     bool noKeysPressedPreviously;
     /** @brief Time when last keypad update was done. */
     double lastUpdateTime;
-    /** @brief Minimum time between keypad updates. */
-    double updateInterval;
 };
 
 /* Keys on the keypad and their state when previously checked. */
@@ -156,8 +154,6 @@ void updateKeypad()
     if (enoughTimeSinceLastKeypadUpdate())
     {
         updateKeypadStatus();
-
-        //printKeyStatus();
 
         if (keypadState.exactlyOneKeyPressed && keypadState.noKeysPressedPreviously)
         {
@@ -377,7 +373,7 @@ static bool enoughTimeSinceLastKeypadUpdate()
     double currentTimeInSeconds = getCurrentTimeInSeconds();
     double timeSinceLastKeypadUpdate = currentTimeInSeconds - keypadState.lastUpdateTime;
 
-    if (timeSinceLastKeypadUpdate >= keypadState.updateInterval)
+    if (timeSinceLastKeypadUpdate >= keypadConfig.UPDATE_INTERVAL_SECONDS)
     {
         return true;
     }
@@ -429,8 +425,6 @@ void initializeKeypad()
     keypadState.exactlyOneKeyPressed = false;
     keypadState.anyKeysPressed = false;
     keypadState.lastUpdateTime = getCurrentTimeInSeconds();
-    // TODO: Read this from file.
-    keypadState.updateInterval = 0.1;
 
     if (keypadState.keysPressedPreviously == NULL) 
     {
