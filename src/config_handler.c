@@ -5,7 +5,7 @@
  * @brief Reads key-value pairs from config.ini and passes relevant values to other files.
  * 
  * @date Created 2023-11-14
- * @date Modified 2023-12-04
+ * @date Modified 2023-12-05
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -86,8 +86,8 @@ struct ConfigData
     // leds.c //
     ////////////
     
-    struct LedGPIOPins ledPins;
-    int ledStaysOnFor;
+    struct LEDGPIOPins LEDPins;
+    int LEDStaysOnFor;
 
     //////////////
     // sounds.c //
@@ -204,7 +204,7 @@ void readConfigFile()
 
     // Pass read variables to relevant files.
     setKeypadValues(&configData.keypadConfig, &configData.keypadPins, configData.keypadKeys);
-    setLedVariables(&configData.ledPins, configData.ledStaysOnFor);
+    setLEDVariables(&configData.LEDPins, configData.LEDStaysOnFor);
     setSoundsConfig(configData.audioDeviceID);
 
     fclose(file);
@@ -394,7 +394,7 @@ static void readLEDData(struct ConfigData *configData, const char *key, const ch
 
     if (strcmp(key, KEY_LED_STAYS_ON_FOR) == 0)
     {
-        configData->ledStaysOnFor = atoi(value);
+        configData->LEDStaysOnFor = atoi(value);
     }
 
     ////////////////////////////
@@ -403,17 +403,17 @@ static void readLEDData(struct ConfigData *configData, const char *key, const ch
 
     else if (strcmp(key, KEY_LED_RED_GPIO) == 0)
     {
-        configData->ledPins.LED_RED = atoi(value);
+        configData->LEDPins.LED_RED = atoi(value);
     }
 
     else if (strcmp(key, KEY_LED_GREEN_GPIO) == 0)
     {
-        configData->ledPins.LED_GREEN = atoi(value);
+        configData->LEDPins.LED_GREEN = atoi(value);
     }
 
     else if (strcmp(key, KEY_LED_BLUE_GPIO) == 0)
     {
-        configData->ledPins.LED_BLUE = atoi(value);
+        configData->LEDPins.LED_BLUE = atoi(value);
     }
 }
 

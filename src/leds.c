@@ -5,90 +5,96 @@
  * @brief Handles the RGB led attached to the Raspberry Pi 4.
  * 
  * @date Created 2023-11-16
- * @date Modified 2023-11-23
+ * @date Modified 2023-12-05
  * 
  * @copyright Copyright (c) 2023
- * 
- * TODO: Move all pipgio commands to separate file?
- * 
  */
 
 
 
 #include <stdbool.h>
-#include <time.h>               // time_t and time().
 
 #include "leds.h"
-#include "gpio_functions.h"
+
+#include "gpio_functions.h"     // turnGPIOPinOn(), turnGPIOPinOff().
+#include "timer.h"              // getCurrentTimeInSeconds()
 
 
 
-struct LedGPIOPins ledPins;
+struct LEDStatus
+{
+    // Whether any led is on.
+    bool LEDIsOn;
+    // When led was turned on.
+    double LEDStartTime;
+    // How many seconds the led stays on for.
+    int LEDStaysOnFor;
+};
 
-struct LedStatus ledStatus;
+struct LEDGPIOPins LEDPins;
+struct LEDStatus LEDCurrentStatus;
 
 
 
 void updateLED()
 {
-    if (ledStatus.ledIsOn)
+    if (LEDCurrentStatus.LEDIsOn)
     {
-        time_t currentTime = time(NULL);
-        double ledHasBeenOnFor = difftime(currentTime, ledStatus.ledStartTime);
+        double LEDHasBeenOnFor = getCurrentTimeInSeconds() - LEDCurrentStatus.LEDStartTime;
 
-        if (ledHasBeenOnFor >= ledStatus.ledStaysOnFor)
+        if (LEDHasBeenOnFor >= LEDCurrentStatus.LEDStaysOnFor)
         {
-            turnLedsOff();
+            turnLEDsOff();
         }
     }
 }
 
-void turnLedOn(bool red, bool green, bool blue)
+void turnLEDOn(const bool red, const bool green, const bool blue)
 {
-    turnLedsOff();
+    turnLEDsOff();
 
     if (red)
     {
-        turnGPIOPinOn(ledPins.LED_RED);
+        turnGPIOPinOn(LEDPins.LED_RED);
     }
 
     if (green)
     {
-        turnGPIOPinOn(ledPins.LED_GREEN);
+        turnGPIOPinOn(LEDPins.LED_GREEN);
     }
 
     if (blue)
     {
-        turnGPIOPinOn(ledPins.LED_BLUE);
+        turnGPIOPinOn(LEDPins.LED_BLUE);
     }
 
     if (red || green ||blue)
     {
-        ledStatus.ledIsOn = true;
-        ledStatus.ledStartTime = time(NULL);
+        LEDCurrentStatus.LEDIsOn = true;
+        LEDCurrentStatus.LEDStartTime = getCurrentTimeInSeconds();
     }
 }
 
-void turnLedsOff()
+void turnLEDsOff()
 {
-    if (ledStatus.ledIsOn)
+    if (LEDCurrentStatus.LEDIsOn)
     {
-        turnGPIOPinOff(ledPins.LED_RED);
-        turnGPIOPinOff(ledPins.LED_GREEN);
-        turnGPIOPinOff(ledPins.LED_BLUE);
-        ledStatus.ledIsOn = false;
-        ledStatus.ledStartTime = 0;
+        turnGPIOPinOff(LEDPins.LED_RED);
+        turnGPIOPinOff(LEDPins.LED_GREEN);
+        turnGPIOPinOff(LEDPins.LED_BLUE);
+        LEDCurrentStatus.LEDIsOn = false;
+        LEDCurrentStatus.LEDStartTime = 0;
     }
 }
 
-void setLedVariables(struct LedGPIOPins *pins, int ledStaysOnFor)
+void setLEDVariables(const struct LEDGPIOPins *pins, const int LEDStaysOnFor)
 {
-    ledPins = *pins;
-    ledStatus.ledStaysOnFor = ledStaysOnFor;
+    LEDPins = *pins;
+    LEDCurrentStatus.LEDStaysOnFor = LEDStaysOnFor;
 }
 
 void initializeLeds()
 {
-    ledStatus.ledIsOn = false;
-    ledStatus.ledStartTime = 0;
+    LEDCurrentStatus.LEDIsOn = false;
+    LEDCurrentStatus.LEDStartTime = 0;
 }

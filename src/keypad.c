@@ -6,7 +6,7 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.c.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-12-04
+ * @date Modified 2023-12-05
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -24,8 +24,9 @@
 
 #include "keypad.h"
 #include "gpio_functions.h"     // turnGPIOPinOff(), turnGPIOPinOn(), isGPIOPinOn().
-#include "leds.h"               // turnLedOn(), turnLedsOff().
+#include "leds.h"               // turnLEDOn(), turnLEDsOff().
 #include "sounds.h"             // playSound().
+#include "timer.h"              // getCurrentTimeInSeconds().
 
 
 
@@ -102,7 +103,7 @@ static void updateKeypadStatus();
  * 
  * @param key Key to save.
  */
-static void storeKeyPress(char key);
+static void storeKeyPress(const char key);
 
 /**
  * @brief Resets the currently input PIN.
@@ -117,7 +118,7 @@ static void clearPIN();
  * @return true If the PIN matches.
  * @return false If the PIN doesn't have a match.
  */
-static bool validPIN(char *pin_input);
+static bool validPIN(const char *pin_input);
 
 /**
  * @brief Checks if it has been too long since the last keypress.
@@ -247,10 +248,10 @@ static void updateKeypadStatus()
 
 
 
-static void storeKeyPress(char key)
+static void storeKeyPress(const char key)
 {
     // If the there's a led still on, turn it off when we get the first input.
-    turnLedsOff();
+    turnLEDsOff();
 
     // Save the pressed key and record the time.
     currentPinState.keyPresses[currentPinState.nextPressIndex] = key;
@@ -270,7 +271,7 @@ static void storeKeyPress(char key)
             // TODO: Do database things.
             printf("\nCORRECT PIN! - %s \n\n", currentPinState.keyPresses);
 
-            turnLedOn(false, true, false);      // Green light.
+            turnLEDOn(false, true, false);      // Green light.
             playSound(SOUND_BEEP_SUCCESS);
         }
 
@@ -278,7 +279,7 @@ static void storeKeyPress(char key)
         {
             printf("\nPIN REJECTED! - %s \n\n", currentPinState.keyPresses);
 
-            turnLedOn(true, false, false);      // Red light.
+            turnLEDOn(true, false, false);      // Red light.
             playSound(SOUND_BEEP_ERROR);
         }
 
@@ -303,7 +304,7 @@ static void clearPIN()
     }
 }
 
-static bool validPIN(char *pin_input)
+static bool validPIN(const char *pin_input)
 {
     // TODO: Check if we find user with this PIN from database.
     if (strcmp(pin_input, "123A") == 0)
@@ -333,7 +334,7 @@ static void stopTimeoutTimer()
 static void timeoutPIN()
 {
     // Yellow led.
-    turnLedOn(true, true, false);
+    turnLEDOn(true, true, false);
     clearPIN();
     stopTimeoutTimer();
 
@@ -366,19 +367,9 @@ static bool tooLongSinceLastKeypress()
     }
 }
 
-double getCurrentTimeInSeconds()
-{
-    struct timespec currentTime;
-    clock_gettime(CLOCK_REALTIME, &currentTime);
-
-    // Adds up the amount of seconds (whole number) and amount of nanoseconds converted to seconds (double).
-    return currentTime.tv_sec + (currentTime.tv_nsec / 1e9);
-}
-
 static bool enoughTimeSinceLastKeypadUpdate() 
 {
-    double currentTimeInSeconds = getCurrentTimeInSeconds();
-    double timeSinceLastKeypadUpdate = currentTimeInSeconds - keypadState.lastUpdateTime;
+    double timeSinceLastKeypadUpdate = getCurrentTimeInSeconds() - keypadState.lastUpdateTime;
 
     if (timeSinceLastKeypadUpdate >= keypadConfig.UPDATE_INTERVAL_SECONDS)
     {
@@ -393,11 +384,11 @@ static bool enoughTimeSinceLastKeypadUpdate()
 
 
 
-void setKeypadValues(struct KeypadConfig *config, struct KeypadGPIOPins *keyPins, char **keysParam)
+void setKeypadValues(const struct KeypadConfig *config, const struct KeypadGPIOPins *keyPins, char **keypadKeys)
 {
     keypadConfig = *config;
     keypadPins = *keyPins;    
-    keypadState.keys = keysParam;
+    keypadState.keys = keypadKeys;
 
     initializeKeypadGPIOPins(&keypadPins, &keypadConfig);
 }
@@ -454,12 +445,12 @@ void initializeKeypad()
         printf("\nERROR: Memory allocation failure in keypad.c, initializeKeyboard(), keypadState.keys!\n");
     } */
 
-    //turnLedsOff();
+    //turnLEDsOff();
 }
 
 void cleanupKeypad()
 {
-    turnLedsOff();
+    turnLEDsOff();
 
     free(currentPinState.keyPresses);
     currentPinState.keyPresses = NULL;

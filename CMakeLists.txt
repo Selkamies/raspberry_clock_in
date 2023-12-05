@@ -20,6 +20,7 @@ set(SOURCES
     src/gpio_functions.c
     src/leds.c
     src/sounds.c
+    src/timer.c
 )
 
 # List all header files
