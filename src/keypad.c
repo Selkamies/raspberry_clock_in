@@ -39,30 +39,6 @@
 
 
 
-/* GPIO pin numbers of the keypad row and column pins. */
-struct KeypadGPIOPins keypadPins;
-
-/* Keypad configuration values like KEYPRESS_TIMEOUT. */
-struct KeypadConfig keypadConfig;
-
-/**
- * @brief Struct holding data about the PIN the user is currently trying to input, if any.
- */
-struct CurrentPinInput
-{
-    /** @brief Index for the next free char in the array holding the PIN being entered. */
-    int nextPressIndex;
-    /** @brief Whether key was recently pressed and we are counting until timeout. */
-    bool lastPressTimerOn;
-    /** @brief Time when the last key was pressed. */
-    double lastKeyPressTime;
-    /** @brief Array holding the PIN being entered. */
-    char *keyPresses;
-};
-
-/* Current state of the pin the user is trying to input, if any. */
-struct CurrentPinInput currentPinState;
-
 /**
  * @brief Struct holding the keys on the keypad and the previous state of the keypad keys.
  */
@@ -85,8 +61,34 @@ struct Keypad
     double lastUpdateTime;
 };
 
+/**
+ * @brief Struct holding data about the PIN the user is currently trying to input, if any.
+ */
+struct CurrentPinInput
+{
+    /** @brief Index for the next free char in the array holding the PIN being entered. */
+    int nextPressIndex;
+    /** @brief Whether key was recently pressed and we are counting until timeout. */
+    bool lastPressTimerOn;
+    /** @brief Time when the last key was pressed. */
+    double lastKeyPressTime;
+    /** @brief Array holding the PIN being entered. */
+    char *keyPresses;
+};
+
+
+
+/* GPIO pin numbers of the keypad row and column pins. */
+struct KeypadGPIOPins keypadPins;
+
+/* Keypad configuration values like KEYPRESS_TIMEOUT. */
+struct KeypadConfig keypadConfig;
+
 /* Keys on the keypad and their state when previously checked. */
 struct Keypad keypadState;
+
+/* Current state of the pin the user is trying to input, if any. */
+struct CurrentPinInput currentPinState;
 
 #pragma endregion // Globals
 
@@ -97,6 +99,15 @@ struct Keypad keypadState;
  * like whether any keys are pressed, what key is pressed, etc.
  */
 static void updateKeypadStatus();
+
+/**
+ * @brief Loops through the keypad keys and checks if they are pressed or not. Counts and returns
+ * the number of keys currently pressed. If exactly one key is pressed, notes it in keypadState.keyPressed.
+ * 
+ * @return int Number of keys currently pressed on the keypad. 0-2.
+ * If the number gets above 1, we break the loop early and don't bother checking for the rest of the keys.
+ */
+static int loopThroughKeys();
 
 /**
  * @brief Stores the pressed key to the current PIN under input.
@@ -182,44 +193,7 @@ void updateKeypad()
 static void updateKeypadStatus()
 {
     // Number of keys that are pressed/down this update.
-    int keysNowPressedCount = 0;
-
-    for (int row = 0; row < keypadConfig.KEYPAD_ROWS; row++)
-    {
-        // Disable the current row to check if any key in this row is pressed.
-        turnGPIOPinOff(keypadPins.keypad_rows[row]);
-
-        // Check every column pin to see if a key in this row is pressed.
-        for (int column = 0; column < keypadConfig.KEYPAD_COLUMNS; column++)
-        {
-            // Row off and column on means that they key in the intersection is pressed.
-            bool keyNowPressed = isGPIOPinOn(keypadPins.keypad_columns[column]);
-
-            if (keyNowPressed)
-            {
-                keypadState.keyPressed = keypadState.keys[row][column];
-                //keypadState.anyKeysPressed = true;
-
-                keysNowPressedCount++;
-
-                // More than one key is pressed down at the same time, we don't accept ambigious input.
-                /* if (keysNowPressedCount > 1)
-                {
-                    printf("Too many keys pressed.\n");
-                    keypadState.exactlyOneKeyPressed = false;
-                    // This isn't necessary, but we should probably do it just in case.
-                    keypadState.keyPressed = EMPTY_KEY;
-
-                    return;
-                } */
-            }
-
-            keypadState.keysPressedPreviously[row][column] = keyNowPressed;
-        }
-
-        // Enable the current row to check the next one.
-        turnGPIOPinOn(keypadPins.keypad_rows[row]);
-    }
+    int keysNowPressedCount = loopThroughKeys();
 
     if (keysNowPressedCount == 0)
     {
@@ -236,7 +210,7 @@ static void updateKeypadStatus()
         keypadState.exactlyOneKeyPressed = true;
     }
 
-    if (keysNowPressedCount > 1)
+    else if (keysNowPressedCount > 1)
     {
         //printf("Too many keys pressed.\n");
         keypadState.anyKeysPressed = true;
@@ -244,6 +218,46 @@ static void updateKeypadStatus()
         // This isn't necessary, but we should probably do it just in case.
         keypadState.keyPressed = EMPTY_KEY;
     }
+}
+
+static int loopThroughKeys()
+{
+    int keysNowPressedCount = 0;
+
+    for (int row = 0; row < keypadConfig.KEYPAD_ROWS; row++)
+    {
+        // Disable the current row to check if any key in this row is pressed.
+        turnGPIOPinOff(keypadPins.keypad_rows[row]);
+
+        // Check every column pin to see if a key in this row is pressed.
+        for (int column = 0; column < keypadConfig.KEYPAD_COLUMNS; column++)
+        {
+            // Row off and column on means that they key in the intersection is pressed.
+            bool keyNowPressed = isGPIOPinOn(keypadPins.keypad_columns[column]);
+
+            if (keyNowPressed)
+            {
+                keypadState.keyPressed = keypadState.keys[row][column];
+                keysNowPressedCount++;
+
+                // More than one key is pressed down at the same time, we don't accept ambigious input.
+                if (keysNowPressedCount > 1)
+                {
+                    // TODO: Is this necessary?
+                    turnGPIOPinOn(keypadPins.keypad_rows[row]);
+
+                    return keysNowPressedCount;
+                }
+            }
+
+            keypadState.keysPressedPreviously[row][column] = keyNowPressed;
+        }
+
+        // Enable the current row to check the next one.
+        turnGPIOPinOn(keypadPins.keypad_rows[row]);
+    }
+
+    return keysNowPressedCount;
 }
 
 

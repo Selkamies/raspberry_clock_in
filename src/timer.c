@@ -12,7 +12,7 @@
 
 
 
-#include <time.h>               // clock_gettime(), CLOCK_REALTIME.
+#include <time.h>               // timespec, clock_gettime(), CLOCK_REALTIME.
 
 
 
