@@ -114,7 +114,7 @@ static int loopThroughKeys();
  * 
  * @param key Key to save.
  */
-static void storeKeyPress(const char key);
+static void storeKeyPress(struct LEDConfig *LEDConfigData, const char key);
 
 /**
  * @brief Resets the currently input PIN.
@@ -168,7 +168,7 @@ static bool enoughTimeSinceLastKeypadUpdate();
 
 
 
-void updateKeypad()
+void updateKeypad(struct LEDConfig *LEDConfigData)
 {
     if (enoughTimeSinceLastKeypadUpdate())
     {
@@ -176,14 +176,14 @@ void updateKeypad()
 
         if (keypadState.exactlyOneKeyPressed && keypadState.noKeysPressedPreviously)
         {
-            storeKeyPress(keypadState.keyPressed);
+            storeKeyPress(LEDConfigData, keypadState.keyPressed);
         }
 
         keypadState.noKeysPressedPreviously = !keypadState.anyKeysPressed;
 
         if (tooLongSinceLastKeypress())
         {
-            timeoutPIN();
+            timeoutPIN(LEDConfigData);
         }
 
         keypadState.lastUpdateTime = getCurrentTimeInSeconds();
@@ -262,10 +262,10 @@ static int loopThroughKeys()
 
 
 
-static void storeKeyPress(const char key)
+static void storeKeyPress(struct LEDConfig *LEDConfigData, const char key)
 {
     // If the there's a led still on, turn it off when we get the first input.
-    turnLEDsOff();
+    turnLEDsOff(LEDConfigData);
 
     // Save the pressed key and record the time.
     currentPinState.keyPresses[currentPinState.nextPressIndex] = key;
@@ -285,7 +285,7 @@ static void storeKeyPress(const char key)
             // TODO: Do database things.
             printf("\nCORRECT PIN! - %s \n\n", currentPinState.keyPresses);
 
-            turnLEDOn(false, true, false);      // Green light.
+            turnLEDOn(LEDConfigData, false, true, false);      // Green light.
             playSound(SOUND_BEEP_SUCCESS);
         }
 
@@ -293,7 +293,7 @@ static void storeKeyPress(const char key)
         {
             printf("\nPIN REJECTED! - %s \n\n", currentPinState.keyPresses);
 
-            turnLEDOn(true, false, false);      // Red light.
+            turnLEDOn(LEDConfigData, true, false, false);      // Red light.
             playSound(SOUND_BEEP_ERROR);
         }
 
@@ -345,10 +345,10 @@ static void stopTimeoutTimer()
     //currentPinState.lastKeyPressTime = EMPTY_TIMESTAMP;
 }
 
-static void timeoutPIN()
+static void timeoutPIN(struct LEDConfig *LEDConfigData)
 {
     // Yellow led.
-    turnLEDOn(true, true, false);
+    turnLEDOn(LEDConfigData, true, true, false);
     clearPIN();
     stopTimeoutTimer();
 
@@ -398,7 +398,7 @@ static bool enoughTimeSinceLastKeypadUpdate()
 
 
 
-void setKeypadValues(const struct KeypadConfig *config, const struct KeypadGPIOPins *keyPins, char **keypadKeys)
+void setKeypadValues(struct KeypadConfig *config, struct KeypadGPIOPins *keyPins, char **keypadKeys)
 {
     keypadConfig = *config;
     keypadPins = *keyPins;    
@@ -462,9 +462,9 @@ void initializeKeypad()
     //turnLEDsOff();
 }
 
-void cleanupKeypad()
+void cleanupKeypad(struct LEDConfig *LEDConfigData)
 {
-    turnLEDsOff();
+    turnLEDsOff(LEDConfigData);
 
     free(currentPinState.keyPresses);
     currentPinState.keyPresses = NULL;

@@ -8,7 +8,6 @@
  * @date Modified 2023-12-05
  * 
  * @copyright Copyright (c) 2023
- * 
  */
 
 
@@ -20,21 +19,22 @@
 
 #include <stdbool.h>
 
+#include "leds_config.h"
+//#include "config_data.h"
 
 
-struct LEDGPIOPins 
-{
-    int LED_RED;
-    int LED_GREEN;
-    int LED_BLUE;
-};
+
+// Forward declarations
+struct ConfigData;
+
+
 
 
 
 /**
  * @brief Update led status. If led is on, check if enough time has passed to turn them off.
  */
-void updateLED();
+void updateLED(struct LEDConfig *LEDConfigData);
 
 /**
  * @brief Turns the RGB led on, by setting the three primary colors on or off.
@@ -43,12 +43,12 @@ void updateLED();
  * @param green Whether to use green light or not.
  * @param blue Whether to use blue light or not.
  */
-void turnLEDOn(const bool red, const bool green, const bool blue);
+void turnLEDOn(struct LEDConfig *LEDConfigData, const bool red, const bool green, const bool blue);
 
 /**
  * @brief Turns the RGB led off.
  */
-void turnLEDsOff();
+void turnLEDsOff(struct LEDConfig *LEDConfigData);
 
 
 
@@ -58,12 +58,12 @@ void turnLEDsOff();
  * @param pins Struct with GPIO pin numbers for the RGB led.
  * @param LEDStaysOnFor Time in seconds that the RGB led stays on for when turned on.
  */
-void setLEDVariables(const struct LEDGPIOPins *pins, const int LEDStaysOnFor);
+void setLEDVariables(const struct LEDGPIOPins *LEDPins, const int LEDStaysOnFor);
 
 /**
  * @brief Initialize some variables to their default states.
  */
-void initializeLeds();
+void initializeLeds(struct ConfigData *tempConfigData, struct LEDConfig *LEDConfigData);
 
 
 

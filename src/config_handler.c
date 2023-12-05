@@ -17,12 +17,12 @@
 #include <stdio.h>      // printf(), snprintf().
 #include <stdlib.h>     // atoi(), strtod().
 #include <string.h>     // strcmp(), strstr(), sscanf().
+#include <stdbool.h>
 
 #include "config_handler.h"
 
 // These are the files that we pass the values read from config.ini to.
-#include "keypad.h"
-#include "leds.h"
+
 #include "sounds.h"
 
 
@@ -64,48 +64,6 @@
 #define KEY_AUDIO_DEVICE_ID "AUDIO_DEVICE_ID"
 
 
-
-/**
- * @brief Struct holding all values read from config.ini. Relevant values are passed to files
- * that need them, and this struct is discarded after we have done passing them.
- * 
- */
-struct ConfigData
-{
-    //////////////
-    // keypad.c //
-    //////////////
-
-    struct KeypadConfig keypadConfig;
-    struct KeypadGPIOPins keypadPins;
-    // TODO: Two-dimensional malloc required.
-    //struct Keypad keypadState;
-    char **keypadKeys;
-    
-    ////////////
-    // leds.c //
-    ////////////
-    
-    struct LEDGPIOPins LEDPins;
-    int LEDStaysOnFor;
-
-    //////////////
-    // sounds.c //
-    //////////////
-
-    int audioDeviceID;
-};
-
-/**
- * @brief Stores a key-value pair like MAX_PIN_LENGTH and "4". Read from config.ini.
- */
-//struct KeyValuePair
-//{
-    /** @brief Key name of the key-value pair. Example: MAX_PIN_LENGTH */
-    //char key[MAX_KEY_LENGTH];
-    /** @brief Value for the key as a string. Example: "4" */
-    //char value[MAX_VALUE_LENGTH];
-//};
 
 const char *fileName = "../config/config.ini";
 
@@ -186,8 +144,10 @@ static void readSoundData(struct ConfigData *configData, const char *key, const 
 
 
 
-void readConfigFile()
+void readConfigFile(struct ConfigData *configData)
 {
+    configData->keypadKeys = NULL;
+
     printf("Reading config.ini.\n");
 
     FILE *file = fopen(fileName, "r");
@@ -198,14 +158,14 @@ void readConfigFile()
     }
 
     // Struct for temporarily holding data read from config.ini. Destroyed after file reading ends.
-    struct ConfigData configData;
+    //struct ConfigData configData;
 
-    readLines(file, &configData);
+    readLines(file, configData);
 
     // Pass read variables to relevant files.
-    setKeypadValues(&configData.keypadConfig, &configData.keypadPins, configData.keypadKeys);
-    setLEDVariables(&configData.LEDPins, configData.LEDStaysOnFor);
-    setSoundsConfig(configData.audioDeviceID);
+    setKeypadValues(&configData->keypadConfig, &configData->keypadPins, configData->keypadKeys);
+    //setLEDVariables(&configData->LEDPins, configData->LEDStaysOnFor);
+    setSoundsConfig(configData->audioDeviceID);
 
     fclose(file);
 }
@@ -326,6 +286,7 @@ static void readKeypadData(struct ConfigData *configData, const char *key, const
     else if (strcmp(key, KEY_KEYPAD_UPDATE_INVERVAL) == 0)
     {
         configData->keypadConfig.UPDATE_INTERVAL_SECONDS = strtod(value, NULL);
+        printf("Interval: %.2f\n", configData->keypadConfig.UPDATE_INTERVAL_SECONDS);
     }
 
     ///////////////////
@@ -345,6 +306,8 @@ static void readKeypadData(struct ConfigData *configData, const char *key, const
             // Dynamically allocate memory for keys array if not already allocated.
             if (configData->keypadKeys == NULL)
             {
+                printf("Allocating.\n");
+
                 configData->keypadKeys = malloc(configData->keypadConfig.KEYPAD_ROWS * sizeof(char *));
 
                 for (int row = 0; row < configData->keypadConfig.KEYPAD_ROWS; row++)
@@ -394,7 +357,8 @@ static void readLEDData(struct ConfigData *configData, const char *key, const ch
 
     if (strcmp(key, KEY_LED_STAYS_ON_FOR) == 0)
     {
-        configData->LEDStaysOnFor = atoi(value);
+        //configData->LEDStaysOnFor = atoi(value);
+        configData->LEDConfigData.LEDCurrentStatus.LEDStaysOnFor = atoi(value);
     }
 
     ////////////////////////////
@@ -403,17 +367,20 @@ static void readLEDData(struct ConfigData *configData, const char *key, const ch
 
     else if (strcmp(key, KEY_LED_RED_GPIO) == 0)
     {
-        configData->LEDPins.LED_RED = atoi(value);
+        //configData->LEDPins.LED_RED = atoi(value);
+        configData->LEDConfigData.pins.LED_RED = atoi(value);
     }
 
     else if (strcmp(key, KEY_LED_GREEN_GPIO) == 0)
     {
-        configData->LEDPins.LED_GREEN = atoi(value);
+        //configData->LEDPins.LED_GREEN = atoi(value);
+        configData->LEDConfigData.pins.LED_GREEN = atoi(value);
     }
 
     else if (strcmp(key, KEY_LED_BLUE_GPIO) == 0)
     {
-        configData->LEDPins.LED_BLUE = atoi(value);
+        //configData->LEDPins.LED_BLUE = atoi(value);
+        configData->LEDConfigData.pins.LED_BLUE = atoi(value);
     }
 }
 
