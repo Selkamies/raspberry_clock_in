@@ -5,7 +5,7 @@
  * @brief Handles all the GPIO pin operations required by keypad using pigpio.
  * 
  * @date Created 2023-11-13
- * @date Updated 2023-11-23
+ * @date Updated 2023-12-07
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -19,21 +19,21 @@
 #include <pigpio.h>
 
 #include "gpio_functions.h"
-#include "keypad.h"
+#include "keypad_config.h"
 
 
 
-void turnGPIOPinOn(int pinNumber)
+void turnGPIOPinOn(const int pinNumber)
 {
     gpioWrite(pinNumber, 1);
 }
 
-void turnGPIOPinOff(int pinNumber)
+void turnGPIOPinOff(const int pinNumber)
 {
     gpioWrite(pinNumber, 0);
 }
 
-bool isGPIOPinOn(int pinNumber)
+bool isGPIOPinOn(const int pinNumber)
 {
     if (gpioRead(pinNumber))
     {
@@ -46,42 +46,42 @@ bool isGPIOPinOn(int pinNumber)
     }
 }
 
-void initializeKeypadGPIOPins(struct KeypadGPIOPins *keypadPins, struct KeypadConfig *config)
+void initializeKeypadGPIOPins(struct KeypadConfig *keypadConfig)
 {
     printf("Initializing keypad GPIO pins.\n");
 
     // Keypad rows are set to output and pulldown state.
-    for (int rowIndex = 0; rowIndex < config->KEYPAD_ROWS; rowIndex++)
+    for (int rowIndex = 0; rowIndex < keypadConfig->KEYPAD_ROWS; rowIndex++)
     {
-        gpioSetMode(keypadPins->keypad_rows[rowIndex], PI_OUTPUT);
-        gpioSetPullUpDown(keypadPins->keypad_rows[rowIndex], PI_PUD_DOWN);
+        gpioSetMode(keypadConfig->pins.keypad_rows[rowIndex], PI_OUTPUT);
+        gpioSetPullUpDown(keypadConfig->pins.keypad_rows[rowIndex], PI_PUD_DOWN);
     }
 
     // Keypad rows are set to input and pullup state.
-    for (int columnIndex = 0; columnIndex < config->KEYPAD_COLUMNS; columnIndex++)
+    for (int columnIndex = 0; columnIndex < keypadConfig->KEYPAD_COLUMNS; columnIndex++)
     {
-        gpioSetMode(keypadPins->keypad_columns[columnIndex], PI_INPUT);
-        gpioSetPullUpDown(keypadPins->keypad_columns[columnIndex], PI_PUD_UP);
+        gpioSetMode(keypadConfig->pins.keypad_columns[columnIndex], PI_INPUT);
+        gpioSetPullUpDown(keypadConfig->pins.keypad_columns[columnIndex], PI_PUD_UP);
     }
 }
 
-void cleanupKeypadGPIOPins(struct KeypadGPIOPins *keypadPins, struct KeypadConfig *config) 
+void cleanupKeypadGPIOPins(struct KeypadConfig *keypadConfig) 
 {
     printf("Resetting GPIO pins.\n");
 
-    for (int rowIndex = 0; rowIndex < config->KEYPAD_ROWS; rowIndex++)
+    for (int rowIndex = 0; rowIndex < keypadConfig->KEYPAD_ROWS; rowIndex++)
     {
-        gpioSetMode(keypadPins->keypad_rows[rowIndex], PI_INPUT);
+        gpioSetMode(keypadConfig->pins.keypad_rows[rowIndex], PI_INPUT);
     }
 
-    for (int columnIndex = 0; columnIndex < config->KEYPAD_COLUMNS; columnIndex++)
+    for (int columnIndex = 0; columnIndex < keypadConfig->KEYPAD_COLUMNS; columnIndex++)
     {
-        gpioSetMode(keypadPins->keypad_columns[columnIndex], PI_INPUT);
+        gpioSetMode(keypadConfig->pins.keypad_columns[columnIndex], PI_INPUT);
     }
 
-    free(keypadPins->keypad_rows);
-    free(keypadPins->keypad_columns);
-    keypadPins->keypad_rows = NULL;
-    keypadPins->keypad_columns = NULL;
+    free(keypadConfig->pins.keypad_rows);
+    free(keypadConfig->pins.keypad_columns);
+    keypadConfig->pins.keypad_rows = NULL;
+    keypadConfig->pins.keypad_columns = NULL;
 }
 

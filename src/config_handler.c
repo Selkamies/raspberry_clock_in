@@ -5,7 +5,7 @@
  * @brief Reads key-value pairs from config.ini and passes relevant values to other files.
  * 
  * @date Created 2023-11-14
- * @date Modified 2023-12-05
+ * @date Modified 2023-12-07
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -20,10 +20,7 @@
 #include <stdbool.h>
 
 #include "config_handler.h"
-
-// These are the files that we pass the values read from config.ini to.
-
-#include "sounds.h"
+//#include "config_data.h"
 
 
 
@@ -146,7 +143,7 @@ static void readSoundData(struct ConfigData *configData, const char *key, const 
 
 void readConfigFile(struct ConfigData *configData)
 {
-    configData->keypadKeys = NULL;
+    configData->keypadConfig.keypadState.keys = NULL;
 
     printf("Reading config.ini.\n");
 
@@ -157,15 +154,7 @@ void readConfigFile(struct ConfigData *configData)
         return;
     }
 
-    // Struct for temporarily holding data read from config.ini. Destroyed after file reading ends.
-    //struct ConfigData configData;
-
     readLines(file, configData);
-
-    // Pass read variables to relevant files.
-    setKeypadValues(&configData->keypadConfig, &configData->keypadPins, configData->keypadKeys);
-    //setLEDVariables(&configData->LEDPins, configData->LEDStaysOnFor);
-    //setSoundsConfig(configData->soundsConfig->audioDeviceID);
 
     fclose(file);
 }
@@ -184,6 +173,7 @@ static void readLines(FILE *file, struct ConfigData *configData)
     // Reads key until first whitespace or equals sign, then reads the value from after equals sign adn whitespaces.
     snprintf(keyValueFormatString, sizeof(keyValueFormatString), " %%%d[^= ] = %%%d[^\n]", MAX_KEY_LENGTH - 1, MAX_VALUE_LENGTH - 1);
 
+    // Loop through the lines in config.ini.
     while (fgets(line, sizeof(line), file)) 
     {
         if (isSkippableLine(line))
@@ -274,19 +264,18 @@ static void readKeypadData(struct ConfigData *configData, const char *key, const
     else if (strcmp(key, KEY_KEYPAD_ROWS) == 0)
     {
         configData->keypadConfig.KEYPAD_ROWS = atoi(value);
-        configData->keypadPins.keypad_rows = calloc(configData->keypadConfig.KEYPAD_ROWS, sizeof(int));
+        configData->keypadConfig.pins.keypad_rows = calloc(configData->keypadConfig.KEYPAD_ROWS, sizeof(int));
     }
 
     else if (strcmp(key, KEY_KEYPAD_COLUMNS) == 0)
     {
         configData->keypadConfig.KEYPAD_COLUMNS = atoi(value);
-        configData->keypadPins.keypad_columns = calloc(configData->keypadConfig.KEYPAD_COLUMNS, sizeof(int));
+        configData->keypadConfig.pins.keypad_columns = calloc(configData->keypadConfig.KEYPAD_COLUMNS, sizeof(int));
     }
 
     else if (strcmp(key, KEY_KEYPAD_UPDATE_INVERVAL) == 0)
     {
         configData->keypadConfig.UPDATE_INTERVAL_SECONDS = strtod(value, NULL);
-        printf("Interval: %.2f\n", configData->keypadConfig.UPDATE_INTERVAL_SECONDS);
     }
 
     ///////////////////
@@ -304,20 +293,18 @@ static void readKeypadData(struct ConfigData *configData, const char *key, const
         if (sscanf(key, KEY_KEYPAD_KEY_ROW_D_COLUMN_D, &rowIndex, &columnIndex) == 2)
         {
             // Dynamically allocate memory for keys array if not already allocated.
-            if (configData->keypadKeys == NULL)
+            if (configData->keypadConfig.keypadState.keys == NULL)
             {
-                printf("Allocating.\n");
-
-                configData->keypadKeys = malloc(configData->keypadConfig.KEYPAD_ROWS * sizeof(char *));
+                configData->keypadConfig.keypadState.keys = malloc(configData->keypadConfig.KEYPAD_ROWS * sizeof(char *));
 
                 for (int row = 0; row < configData->keypadConfig.KEYPAD_ROWS; row++)
                 {
-                    configData->keypadKeys[row] = malloc(configData->keypadConfig.KEYPAD_COLUMNS * sizeof(char));
+                    configData->keypadConfig.keypadState.keys[row] = malloc(configData->keypadConfig.KEYPAD_COLUMNS * sizeof(char));
                 }
             }
 
             // Store the key in the dynamically allocated keys array.
-            configData->keypadKeys[rowIndex][columnIndex] = value[0];
+            configData->keypadConfig.keypadState.keys[rowIndex][columnIndex] = value[0];
         }
     }
 
@@ -332,7 +319,7 @@ static void readKeypadData(struct ConfigData *configData, const char *key, const
         // Gets the row index from the key.
         if (sscanf(key, KEY_KEYPAD_ROW_D, &rowIndex) == 1)
         {
-            configData->keypadPins.keypad_rows[rowIndex] = atoi(value);
+            configData->keypadConfig.pins.keypad_rows[rowIndex] = atoi(value);
         }
     }
 
@@ -343,7 +330,7 @@ static void readKeypadData(struct ConfigData *configData, const char *key, const
         // Gets the column index from the key.
         if (sscanf(key, KEY_KEYPAD_COLUMN_D, &columnIndex) == 1)
         {
-            configData->keypadPins.keypad_columns[columnIndex] = atoi(value);
+            configData->keypadConfig.pins.keypad_columns[columnIndex] = atoi(value);
         }
         
     }
@@ -367,19 +354,16 @@ static void readLEDData(struct ConfigData *configData, const char *key, const ch
 
     else if (strcmp(key, KEY_LED_RED_GPIO) == 0)
     {
-        //configData->LEDPins.LED_RED = atoi(value);
         configData->LEDConfigData.pins.LED_RED = atoi(value);
     }
 
     else if (strcmp(key, KEY_LED_GREEN_GPIO) == 0)
     {
-        //configData->LEDPins.LED_GREEN = atoi(value);
         configData->LEDConfigData.pins.LED_GREEN = atoi(value);
     }
 
     else if (strcmp(key, KEY_LED_BLUE_GPIO) == 0)
     {
-        //configData->LEDPins.LED_BLUE = atoi(value);
         configData->LEDConfigData.pins.LED_BLUE = atoi(value);
     }
 }

@@ -1,8 +1,9 @@
 /**
- * @file leds_config.h
+ * @file config_data.h
  * @author Selkamies
  * 
- * @brief 
+ * @brief Defines the ConfigData struct, which is used to hold basically all variables used by the program.
+ * ConfigData has substructs for separating the data used by keypad, leds and sounds.
  * 
  * @date Created 2023-12-05
  * @date Modified 2023-12-07
@@ -17,34 +18,24 @@
 
 
 
-#include "keypad.h"
+// Cannot forward declare?
+#include "keypad_config.h"
 #include "leds_config.h"
 #include "sounds_config.h"
 
 
 
+/**
+ * @brief Struct holding data about basically all variables used by the program.
+ */
 struct ConfigData
 {
-    //////////////
-    // keypad.c //
-    //////////////
-
+    /** @brief Struct holding configuration variables used by keypad and PIN reading. */
     struct KeypadConfig keypadConfig;
-    struct KeypadGPIOPins keypadPins;
-    char **keypadKeys;
-    
-    ////////////
-    // leds.c //
-    ////////////
-    
+    /** @brief Struct holding all the variables needed by leds.c. */
     struct LEDConfig LEDConfigData;
-
-    //////////////
-    // sounds.c //
-    //////////////
-
+    /** @brief Struct holding all the variables needed by sounds.c. */
     struct SoundsConfig soundsConfig;
-    //int audioDeviceID;
 };
 
 

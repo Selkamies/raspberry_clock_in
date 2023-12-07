@@ -5,7 +5,7 @@
  * @brief Handles all the GPIO pin operations required by keypad using pigpio.
  * 
  * @date Created 2023-11-13
- * @date Updated 2023-11-23
+ * @date Updated 2023-12-07
  * 
  * @copyright Copyright (c) 2023
  */
@@ -19,8 +19,6 @@
 
 // Forward declaration.
 struct KeypadConfig;
-struct KeypadGPIOPins;
-
 
 
 
@@ -29,14 +27,14 @@ struct KeypadGPIOPins;
  * 
  * @param pinNumber The pin number for the GPIO pin.
  */
-void turnGPIOPinOn(int pinNumber);
+void turnGPIOPinOn(const int pinNumber);
 
 /**
  * @brief Turns the GPIO pin off.
  * 
  * @param pinNumber The pin number for the GPIO pin.
  */
-void turnGPIOPinOff(int pinNumber);
+void turnGPIOPinOff(const int pinNumber);
 
 /**
  * @brief Checks if the GPIO pin is on.
@@ -45,7 +43,7 @@ void turnGPIOPinOff(int pinNumber);
  * @return true If gpioRead(pinNumber) = 0.
  * @return false If gpioRead(pinNumber) = 1.
  */
-bool isGPIOPinOn(int pinNumber);
+bool isGPIOPinOn(const int pinNumber);
 
 
 
@@ -55,7 +53,7 @@ bool isGPIOPinOn(int pinNumber);
  * @param keypadPins Struct with the GPIO pin numbers of keypad rows and columns.
  * @param config Struct holding keypad config info, like the number of rows and columns in the keypad.
  */
-void initializeKeypadGPIOPins(struct KeypadGPIOPins *keypadPins, struct KeypadConfig *config);
+void initializeKeypadGPIOPins(struct KeypadConfig *config);
 
 /**
  * @brief Sets the keypad GPIO pins back to the default states.
@@ -63,7 +61,7 @@ void initializeKeypadGPIOPins(struct KeypadGPIOPins *keypadPins, struct KeypadCo
  * @param keypadPins Struct with the GPIO pin numbers of keypad rows and columns.
  * @param config Struct holding keypad config info, like the number of rows and columns in the keypad.
  */
-void cleanupKeypadGPIOPins(struct KeypadGPIOPins *keypadPins, struct KeypadConfig *config);
+void cleanupKeypadGPIOPins(struct KeypadConfig *config);
 
 
 

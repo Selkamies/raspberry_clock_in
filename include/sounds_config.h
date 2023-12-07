@@ -2,7 +2,7 @@
  * @file sounds_config.h
  * @author Selkamies
  * 
- * @brief 
+ * @brief Defines SoundsConfig struct, which holds basically all data used by the sounds.c.
  * 
  * @date Created 2023-12-07
  * @date Updated 2023-12-07
@@ -17,7 +17,7 @@
 
 
 
-#include "SDL2/SDL_mixer.h"     // SDL_mixer handles playing sound files. Needed here for Mix_Chunk.
+#include "SDL2/SDL_mixer.h"     // Mix_Chunk. Cannot forward declare?
 
 
 
@@ -34,9 +34,14 @@ struct SoundChunks
     Mix_Chunk *beepError;
 };
 
+/**
+ * @brief Struct holding all the variables needed by sounds.c.
+ */
 struct SoundsConfig
 {
+    /** @brief Struct holding SDL_mixer sound chunks for the different sounds. */
     struct SoundChunks sounds;
+    /** @brief Holds the ID of a sound device read from config.ini. If -1, SDL uses default device. */
     int manualAudioDeviceID;
 };
 

@@ -23,11 +23,7 @@
 //#include "SDL2/SDL_mixer.h"     // SDL_mixer handles playing sound files. Needed here for Mix_Chunk.
 
 #include "sounds.h"
-//#include "sounds_config.h"
-
-
-
-#pragma region Globals
+#include "sounds_config.h"
 
 
 
@@ -45,21 +41,12 @@
 
 
 
-//struct SoundsConfig soundsConfig;
-
-/** @brief Struct holding SDL_mixer sound chunks for the different sounds. */
-//struct SoundChunks sounds;
-
-//int manualAudioDeviceID;
-
-#pragma endregion // Globals
-
-
-
 #pragma region FunctionDeclarations
 
 /**
  * @brief Selects either the default audio device or manually set audio device with specified id.
+ * 
+ * @param manualAudioDeviceID ID of the audio device to be used. -1 if SDL chooses default.
  * 
  * @return SDL_AudioDeviceID The SDL audio device id number selected. integer.
  */
@@ -93,18 +80,9 @@ void playSound(const struct SoundsConfig *soundsConfig, enum Sound sound)
 
 
 
-/* void setSoundsConfig(int manualDeviceID)
-{
-    soundsConfig.manualAudioDeviceID = manualDeviceID;
-} */
-
-
-
-void initializeSounds(struct ConfigData *configData, struct SoundsConfig *soundsConfig)
+void initializeSounds(struct SoundsConfig *soundsConfig)
 {
     printf("Initializing sounds.\n");
-
-    soundsConfig->manualAudioDeviceID = configData->soundsConfig.manualAudioDeviceID;
 
     if (SDL_Init(SDL_INIT_AUDIO) < 0)
     {

@@ -17,8 +17,8 @@
 
 
 
-#include "config_data.h"
-#include "sounds_config.h"
+// Forward declaration.
+struct SoundsConfig;
 
 
 
@@ -37,14 +37,7 @@ enum Sound
 /**
  * @brief Initializes anything required to play sounds. Currently SDL2 and SDL2_Mixer.
  */
-void initializeSounds(struct ConfigData *configData, struct SoundsConfig *soundsConfig);
-
-/**
- * @brief Used to set the manualAudioDeviceId that is read from file. Called by config_handler.c.
- * 
- * @param manualDeviceID The audio device id the program will use. -1 means the default audio device will be used.
- */
-//void setSoundsConfig(int manualDeviceID);
+void initializeSounds(struct SoundsConfig *soundsConfig);
 
 /**
  * @brief Plays a desired sound.

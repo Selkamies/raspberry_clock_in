@@ -11,11 +11,6 @@
  * 
  * @copyright Copyright (c) 2023
  * 
- * TODO: Read files to a temporary config struct in initialize() here from config.ini,
- *       then pass the config struct to initialize() functions in keypad.c and leds.c.
- *       Temporary config struct gets discared after initialize().
- *       Create file structs 
- * 
  * Possible future implementations:
  * TODO: Support for RFID tags.
  * TODO: Support for a touch screen.
@@ -31,12 +26,13 @@
 #include "leds.h"               // initializeLeds(), updateLED().
 #include "sounds.h"             // initializeSounds(), cleanupSounds().
 
+//#include "keypad_config.h"      // struct KeypadConfig.
 //#include "leds_config.h"        // struct LEDConfig.
 //#include "sounds_config.h"      // struct SoundsConfig.
 
 
 
-void mainLoop(struct LEDConfig *LEDConfigData, struct SoundsConfig *soundsConfig)
+void mainLoop(struct ConfigData *configData)
 {
     printf("\nMain loop starting. You may now input PIN.\n\n");
 
@@ -45,8 +41,8 @@ void mainLoop(struct LEDConfig *LEDConfigData, struct SoundsConfig *soundsConfig
     // CTRL-C will end he main loop.
     while (!signal_received) 
     {
-        updateKeypad(LEDConfigData, soundsConfig);
-        updateLED(LEDConfigData);
+        updateKeypad(configData);
+        updateLED(&configData->LEDConfigData);
 
         sleepGPIOLibrary(0.01);
     }
@@ -57,28 +53,29 @@ void mainLoop(struct LEDConfig *LEDConfigData, struct SoundsConfig *soundsConfig
 /**
  * @brief Read files, set up variables, start pigpio.
  */
-void initialize(struct LEDConfig *LEDConfigData, struct SoundsConfig *soundsConfig)
+void initialize(struct ConfigData *configData)
 {
     if (!initializeGPIOLibrary())
     {
         return;
     }
 
-    struct ConfigData tempConfigData;
-    // Config file has to be read before we initialize keypad.
-    readConfigFile(&tempConfigData);
-    initializeKeypad();
-    initializeLeds(&tempConfigData, LEDConfigData);
-    initializeSounds(&tempConfigData, soundsConfig);
+    readConfigFile(configData);
+
+    initializeKeypad(&configData->keypadConfig);
+    initializeLeds(&configData->LEDConfigData);
+    initializeSounds(&configData->soundsConfig);
 }
 
 /**
  * @brief Freeing memory, turning off leds.
  */
-void cleanup(struct LEDConfig *LEDConfigData, struct SoundsConfig *soundsConfig)
+void cleanup(struct ConfigData *configData)
 {
-    cleanupKeypad(LEDConfigData);
-    cleanupSounds(soundsConfig);
+    turnLEDsOff(&configData->LEDConfigData);
+
+    cleanupKeypad(&configData->keypadConfig);
+    cleanupSounds(&configData->soundsConfig);
 
     cleanupGPIOLibrary();
 }
@@ -89,12 +86,12 @@ int main()
 {
     printf("\nProgram starting.\n");
 
-    struct LEDConfig LEDConfigData;
-    struct SoundsConfig soundsConfig;
+    // Struct holding basically all variables used by the program.
+    struct ConfigData configData;
 
-    initialize(&LEDConfigData, &soundsConfig);
-    mainLoop(&LEDConfigData, &soundsConfig);
-    cleanup(&LEDConfigData, &soundsConfig);
+    initialize(&configData);
+    mainLoop(&configData);
+    cleanup(&configData);
 
     return 0;
 }

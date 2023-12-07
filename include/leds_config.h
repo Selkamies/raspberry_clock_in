@@ -2,7 +2,7 @@
  * @file leds_config.h
  * @author Selkamies
  * 
- * @brief 
+ * @brief Defines LEDConfig struct, which holds basically all data used by leds.c.
  * 
  * @date Created 2023-12-05
  * @date Modified 2023-12-07
@@ -17,10 +17,14 @@
 
 
 
-#include "stdbool.h"
+#include <stdbool.h>
 
 
 
+/**
+ * @brief Struct holding data of current LED status. Whether the led is on, 
+ * when did it turn on and how long should it stay on.
+ */
 struct LEDStatus
 {
     // Whether any led is on.
@@ -31,6 +35,9 @@ struct LEDStatus
     int LEDStaysOnFor;
 };
 
+/**
+ * @brief Holds the GPIO pin numbers of pins used by the RGB led.
+ */
 struct LEDGPIOPins 
 {
     int LED_RED;
@@ -38,11 +45,18 @@ struct LEDGPIOPins
     int LED_BLUE;
 };
 
-// TODO: Use this instead of global structs.
+
+
+/**
+ * @brief Struct holding all the variables needed by leds.c.
+ * 
+ */
 struct LEDConfig
 {
-    struct LEDGPIOPins pins;
+    /** @brief Struct holding data of current LED status */
     struct LEDStatus LEDCurrentStatus;
+    /** @brief Holds the GPIO pin numbers of pins used by the RGB led. */
+    struct LEDGPIOPins pins;
 };
 
 

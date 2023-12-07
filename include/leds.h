@@ -5,7 +5,7 @@
  * @brief Handles the RGB led attached to the Raspberry Pi 4.
  * 
  * @date Created 2023-11-16
- * @date Modified 2023-12-05
+ * @date Modified 2023-12-07
  * 
  * @copyright Copyright (c) 2023
  */
@@ -19,26 +19,24 @@
 
 #include <stdbool.h>
 
-#include "leds_config.h"
-//#include "config_data.h"
 
 
-
-// Forward declarations
-struct ConfigData;
-
-
+// Forward declaration.
+struct LEDConfig;
 
 
 
 /**
  * @brief Update led status. If led is on, check if enough time has passed to turn them off.
+ * 
+ * @param LEDConfigData Struct holding all the variables needed by leds.c.
  */
 void updateLED(struct LEDConfig *LEDConfigData);
 
 /**
  * @brief Turns the RGB led on, by setting the three primary colors on or off.
  * 
+ * @param LEDConfigData Struct holding all the variables needed by leds.c.
  * @param red Whether to use red light or not.
  * @param green Whether to use green light or not.
  * @param blue Whether to use blue light or not.
@@ -47,23 +45,18 @@ void turnLEDOn(struct LEDConfig *LEDConfigData, const bool red, const bool green
 
 /**
  * @brief Turns the RGB led off.
+ * 
+ * @param LEDConfigData Struct holding all the variables needed by leds.c.
  */
 void turnLEDsOff(struct LEDConfig *LEDConfigData);
 
 
 
 /**
- * @brief Set the variables used by leds that need to be read from file. Called by config_handler.
- * 
- * @param pins Struct with GPIO pin numbers for the RGB led.
- * @param LEDStaysOnFor Time in seconds that the RGB led stays on for when turned on.
- */
-void setLEDVariables(const struct LEDGPIOPins *LEDPins, const int LEDStaysOnFor);
-
-/**
  * @brief Initialize some variables to their default states.
+ * @param LEDConfigData Struct holding all the variables needed by leds.c.
  */
-void initializeLeds(struct ConfigData *tempConfigData, struct LEDConfig *LEDConfigData);
+void initializeLeds(struct LEDConfig *LEDConfigData);
 
 
 

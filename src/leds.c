@@ -5,7 +5,7 @@
  * @brief Handles the RGB led attached to the Raspberry Pi 4.
  * 
  * @date Created 2023-11-16
- * @date Modified 2023-12-05
+ * @date Modified 2023-12-07
  * 
  * @copyright Copyright (c) 2023
  */
@@ -18,13 +18,7 @@
 
 #include "gpio_functions.h"     // turnGPIOPinOn(), turnGPIOPinOff().
 #include "timer.h"              // getCurrentTimeInSeconds()
-#include "leds_config.h"
-#include "config_data.h"
-
-
-
-//struct LEDGPIOPins pins;
-//struct LEDStatus LEDCurrentStatus;
+#include "leds_config.h"        // struct LEDConfig.
 
 
 
@@ -74,22 +68,16 @@ void turnLEDsOff(struct LEDConfig *LEDConfigData)
         turnGPIOPinOff(LEDConfigData->pins.LED_RED);
         turnGPIOPinOff(LEDConfigData->pins.LED_GREEN);
         turnGPIOPinOff(LEDConfigData->pins.LED_BLUE);
+
         LEDConfigData->LEDCurrentStatus.LEDIsOn = false;
         LEDConfigData->LEDCurrentStatus.LEDStartTime = 0;
     }
 }
 
-/* void setLEDVariables(const struct LEDGPIOPins *LEDPins, const int LEDStaysOnFor)
-{
-    pins = *LEDPins;
-    LEDCurrentStatus.LEDStaysOnFor = LEDStaysOnFor;
-} */
 
-void initializeLeds(struct ConfigData *tempConfigData, struct LEDConfig *LEDConfigData)
+
+void initializeLeds(struct LEDConfig *LEDConfigData)
 {
-    LEDConfigData->pins = tempConfigData->LEDConfigData.pins;
-    LEDConfigData->LEDCurrentStatus.LEDStaysOnFor = tempConfigData->LEDConfigData.LEDCurrentStatus.LEDStaysOnFor;
-    
     LEDConfigData->LEDCurrentStatus.LEDIsOn = false;
     LEDConfigData->LEDCurrentStatus.LEDStartTime = 0;
 }
