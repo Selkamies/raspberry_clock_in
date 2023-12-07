@@ -6,7 +6,7 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.c.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-12-05
+ * @date Modified 2023-12-07
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -114,7 +114,7 @@ static int loopThroughKeys();
  * 
  * @param key Key to save.
  */
-static void storeKeyPress(struct LEDConfig *LEDConfigData, const char key);
+static void storeKeyPress(struct LEDConfig *LEDConfigData, const struct SoundsConfig *soundsConfig, const char key);
 
 /**
  * @brief Resets the currently input PIN.
@@ -154,7 +154,7 @@ static void stopTimeoutTimer();
  * @brief Resets the PIN due to it being too long since last keypress. Shows yellow led, 
  * and plays error sound effect.
  */
-static void timeoutPIN();
+static void timeoutPIN(struct LEDConfig *LEDConfigData, const struct SoundsConfig *soundsConfig);
 
 /**
  * @brief Checks if enough time has passed since last keypadUpdate to update again.
@@ -168,7 +168,7 @@ static bool enoughTimeSinceLastKeypadUpdate();
 
 
 
-void updateKeypad(struct LEDConfig *LEDConfigData)
+void updateKeypad(struct LEDConfig *LEDConfigData, struct SoundsConfig *soundsConfig)
 {
     if (enoughTimeSinceLastKeypadUpdate())
     {
@@ -176,14 +176,14 @@ void updateKeypad(struct LEDConfig *LEDConfigData)
 
         if (keypadState.exactlyOneKeyPressed && keypadState.noKeysPressedPreviously)
         {
-            storeKeyPress(LEDConfigData, keypadState.keyPressed);
+            storeKeyPress(LEDConfigData, soundsConfig, keypadState.keyPressed);
         }
 
         keypadState.noKeysPressedPreviously = !keypadState.anyKeysPressed;
 
         if (tooLongSinceLastKeypress())
         {
-            timeoutPIN(LEDConfigData);
+            timeoutPIN(LEDConfigData, soundsConfig);
         }
 
         keypadState.lastUpdateTime = getCurrentTimeInSeconds();
@@ -262,7 +262,7 @@ static int loopThroughKeys()
 
 
 
-static void storeKeyPress(struct LEDConfig *LEDConfigData, const char key)
+static void storeKeyPress(struct LEDConfig *LEDConfigData, const struct SoundsConfig *soundsConfig, const char key)
 {
     // If the there's a led still on, turn it off when we get the first input.
     turnLEDsOff(LEDConfigData);
@@ -286,7 +286,7 @@ static void storeKeyPress(struct LEDConfig *LEDConfigData, const char key)
             printf("\nCORRECT PIN! - %s \n\n", currentPinState.keyPresses);
 
             turnLEDOn(LEDConfigData, false, true, false);      // Green light.
-            playSound(SOUND_BEEP_SUCCESS);
+            playSound(soundsConfig, SOUND_BEEP_SUCCESS);
         }
 
         else
@@ -294,7 +294,7 @@ static void storeKeyPress(struct LEDConfig *LEDConfigData, const char key)
             printf("\nPIN REJECTED! - %s \n\n", currentPinState.keyPresses);
 
             turnLEDOn(LEDConfigData, true, false, false);      // Red light.
-            playSound(SOUND_BEEP_ERROR);
+            playSound(soundsConfig, SOUND_BEEP_ERROR);
         }
 
         clearPIN();
@@ -303,7 +303,7 @@ static void storeKeyPress(struct LEDConfig *LEDConfigData, const char key)
 
     else
     {
-        playSound(SOUND_BEEP_NORMAL);
+        playSound(soundsConfig, SOUND_BEEP_NORMAL);
     }
 }
 
@@ -345,14 +345,14 @@ static void stopTimeoutTimer()
     //currentPinState.lastKeyPressTime = EMPTY_TIMESTAMP;
 }
 
-static void timeoutPIN(struct LEDConfig *LEDConfigData)
+static void timeoutPIN(struct LEDConfig *LEDConfigData, const struct SoundsConfig *soundsConfig)
 {
     // Yellow led.
     turnLEDOn(LEDConfigData, true, true, false);
     clearPIN();
     stopTimeoutTimer();
 
-    playSound(SOUND_BEEP_ERROR);
+    playSound(soundsConfig, SOUND_BEEP_ERROR);
 
     printf("\nToo long since last keypress, resetting PIN.\n\n");
 }

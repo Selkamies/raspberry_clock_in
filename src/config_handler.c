@@ -165,7 +165,7 @@ void readConfigFile(struct ConfigData *configData)
     // Pass read variables to relevant files.
     setKeypadValues(&configData->keypadConfig, &configData->keypadPins, configData->keypadKeys);
     //setLEDVariables(&configData->LEDPins, configData->LEDStaysOnFor);
-    setSoundsConfig(configData->audioDeviceID);
+    //setSoundsConfig(configData->soundsConfig->audioDeviceID);
 
     fclose(file);
 }
@@ -388,6 +388,6 @@ static void readSoundData(struct ConfigData *configData, const char *key, const 
 {
     if (strcmp(key, KEY_AUDIO_DEVICE_ID) == 0)
     {
-        configData->audioDeviceID = atoi(value);
+        configData->soundsConfig.manualAudioDeviceID = atoi(value);
     }
 }

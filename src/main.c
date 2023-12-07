@@ -7,7 +7,7 @@
  * they were already marked as present or not. Users and logs are stored in a database.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-12-05
+ * @date Modified 2023-12-07
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -31,9 +31,12 @@
 #include "leds.h"               // initializeLeds(), updateLED().
 #include "sounds.h"             // initializeSounds(), cleanupSounds().
 
+//#include "leds_config.h"        // struct LEDConfig.
+//#include "sounds_config.h"      // struct SoundsConfig.
 
 
-void mainLoop(struct LEDConfig *LEDConfigData)
+
+void mainLoop(struct LEDConfig *LEDConfigData, struct SoundsConfig *soundsConfig)
 {
     printf("\nMain loop starting. You may now input PIN.\n\n");
 
@@ -42,7 +45,7 @@ void mainLoop(struct LEDConfig *LEDConfigData)
     // CTRL-C will end he main loop.
     while (!signal_received) 
     {
-        updateKeypad(LEDConfigData);
+        updateKeypad(LEDConfigData, soundsConfig);
         updateLED(LEDConfigData);
 
         sleepGPIOLibrary(0.01);
@@ -54,7 +57,7 @@ void mainLoop(struct LEDConfig *LEDConfigData)
 /**
  * @brief Read files, set up variables, start pigpio.
  */
-void initialize(struct LEDConfig *LEDConfigData)
+void initialize(struct LEDConfig *LEDConfigData, struct SoundsConfig *soundsConfig)
 {
     if (!initializeGPIOLibrary())
     {
@@ -66,16 +69,16 @@ void initialize(struct LEDConfig *LEDConfigData)
     readConfigFile(&tempConfigData);
     initializeKeypad();
     initializeLeds(&tempConfigData, LEDConfigData);
-    initializeSounds();
+    initializeSounds(&tempConfigData, soundsConfig);
 }
 
 /**
  * @brief Freeing memory, turning off leds.
  */
-void cleanup(struct LEDConfig *LEDConfigData)
+void cleanup(struct LEDConfig *LEDConfigData, struct SoundsConfig *soundsConfig)
 {
     cleanupKeypad(LEDConfigData);
-    cleanupSounds();
+    cleanupSounds(soundsConfig);
 
     cleanupGPIOLibrary();
 }
@@ -87,10 +90,11 @@ int main()
     printf("\nProgram starting.\n");
 
     struct LEDConfig LEDConfigData;
+    struct SoundsConfig soundsConfig;
 
-    initialize(&LEDConfigData);
-    mainLoop(&LEDConfigData);
-    cleanup(&LEDConfigData);
+    initialize(&LEDConfigData, &soundsConfig);
+    mainLoop(&LEDConfigData, &soundsConfig);
+    cleanup(&LEDConfigData, &soundsConfig);
 
     return 0;
 }

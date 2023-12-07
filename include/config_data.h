@@ -5,7 +5,7 @@
  * @brief 
  * 
  * @date Created 2023-12-05
- * @date Modified 2023-12-05
+ * @date Modified 2023-12-07
  * 
  * @copyright Copyright (c) 2023
  */
@@ -19,11 +19,9 @@
 
 #include "keypad.h"
 #include "leds_config.h"
+#include "sounds_config.h"
 
-// Forward declaration to avoid circular dependency
-//struct KeypadConfig;
-//struct KeypadGPIOPins;
-//struct LEDConfig;
+
 
 struct ConfigData
 {
@@ -33,23 +31,20 @@ struct ConfigData
 
     struct KeypadConfig keypadConfig;
     struct KeypadGPIOPins keypadPins;
-    // TODO: Two-dimensional malloc required.
-    //struct Keypad keypadState;
     char **keypadKeys;
     
     ////////////
     // leds.c //
     ////////////
     
-    //struct LEDGPIOPins LEDPins;
-    //int LEDStaysOnFor;
     struct LEDConfig LEDConfigData;
 
     //////////////
     // sounds.c //
     //////////////
 
-    int audioDeviceID;
+    struct SoundsConfig soundsConfig;
+    //int audioDeviceID;
 };
 
 

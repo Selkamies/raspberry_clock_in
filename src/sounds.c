@@ -5,7 +5,7 @@
  * @brief Handles playing sounds. 
  * 
  * @date Created 2023-11-24
- * @date Updated 2023-12-04
+ * @date Updated 2023-12-07
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -20,26 +20,14 @@
 #include <stdio.h>              // printf().
 
 #include "SDL2/SDL.h"
-#include "SDL2/SDL_mixer.h"     // SDL_mixer handles playing sound files. Needed here for Mix_Chunk.
+//#include "SDL2/SDL_mixer.h"     // SDL_mixer handles playing sound files. Needed here for Mix_Chunk.
 
 #include "sounds.h"
+//#include "sounds_config.h"
 
 
 
 #pragma region Globals
-
-/**
- * @brief Struct holding SDL_mixer sound chunks for the different sounds.
- */
-struct SoundChunks
-{
-    /** @brief .wav file loaded to chunk used by SDL_mixer. Used for normal beep when pressing keypad numbers. */
-    Mix_Chunk *beepNormal;
-    /** @brief .wav file loaded to chunk used by SDL_mixer. Used after correct PIN has been entered. */
-    Mix_Chunk *beepSuccess;
-    /** @brief .wav file loaded to chunk used by SDL_mixer. Used for after timeout or wrong PIN has been entered. */
-    Mix_Chunk *beepError;
-};
 
 
 
@@ -57,10 +45,12 @@ struct SoundChunks
 
 
 
-/** @brief Struct holding SDL_mixer sound chunks for the different sounds. */
-struct SoundChunks sounds;
+//struct SoundsConfig soundsConfig;
 
-int manualAudioDeviceID;
+/** @brief Struct holding SDL_mixer sound chunks for the different sounds. */
+//struct SoundChunks sounds;
+
+//int manualAudioDeviceID;
 
 #pragma endregion // Globals
 
@@ -73,22 +63,55 @@ int manualAudioDeviceID;
  * 
  * @return SDL_AudioDeviceID The SDL audio device id number selected. integer.
  */
-static SDL_AudioDeviceID selectAudioDeviceID();
+static SDL_AudioDeviceID selectAudioDeviceID(const int manualAudioDeviceID);
 
 #pragma endregion // FunctionDeclarations
 
 
 
-void initializeSounds()
+void playSound(const struct SoundsConfig *soundsConfig, enum Sound sound)
+{
+    if (sound == SOUND_BEEP_NORMAL)
+    {
+        // -q disables the print message when playing.
+        // -D hw:3,0 uses third sound device.
+        //system("aplay -q -D hw:3,0 " BEEP_NORMAL_FILE_PATH);
+
+        Mix_PlayChannel(-1, soundsConfig->sounds.beepNormal, 0);
+    }
+
+    else if (sound == SOUND_BEEP_SUCCESS)
+    {
+        Mix_PlayChannel(-1, soundsConfig->sounds.beepSuccess, 0);
+    }
+
+    else if (sound == SOUND_BEEP_ERROR)
+    {
+        Mix_PlayChannel(-1, soundsConfig->sounds.beepError, 0);
+    }
+}
+
+
+
+/* void setSoundsConfig(int manualDeviceID)
+{
+    soundsConfig.manualAudioDeviceID = manualDeviceID;
+} */
+
+
+
+void initializeSounds(struct ConfigData *configData, struct SoundsConfig *soundsConfig)
 {
     printf("Initializing sounds.\n");
+
+    soundsConfig->manualAudioDeviceID = configData->soundsConfig.manualAudioDeviceID;
 
     if (SDL_Init(SDL_INIT_AUDIO) < 0)
     {
         printf("Failed to init SDL\n");
     }
 
-    SDL_AudioDeviceID deviceId = selectAudioDeviceID();
+    SDL_AudioDeviceID deviceId = selectAudioDeviceID(soundsConfig->manualAudioDeviceID);
 
     int result = 0;
     // Flags used when initializing SDL_mixer.
@@ -112,23 +135,18 @@ void initializeSounds()
     }
 
     // Load sound files into Mix_Chunk variables.
-    sounds.beepNormal = Mix_LoadWAV(BEEP_NORMAL_FILE_PATH);
-    sounds.beepSuccess = Mix_LoadWAV(BEEP_SUCCESS_FILE_PATH);
-    sounds.beepError = Mix_LoadWAV(BEEP_ERROR_FILE_PATH);
+    soundsConfig->sounds.beepNormal = Mix_LoadWAV(BEEP_NORMAL_FILE_PATH);
+    soundsConfig->sounds.beepSuccess = Mix_LoadWAV(BEEP_SUCCESS_FILE_PATH);
+    soundsConfig->sounds.beepError = Mix_LoadWAV(BEEP_ERROR_FILE_PATH);
 
-    if (!sounds.beepNormal || !sounds.beepSuccess || !sounds.beepError)
+    if (!soundsConfig->sounds.beepNormal || !soundsConfig->sounds.beepSuccess || !soundsConfig->sounds.beepError)
     {
         printf("SDL_mixer failed to load sound files: %s\n", Mix_GetError());
         SDL_Quit();
     }
 }
 
-void setSoundsConfig(int manualDeviceID)
-{
-    manualAudioDeviceID = manualDeviceID;
-}
-
-static SDL_AudioDeviceID selectAudioDeviceID()
+static SDL_AudioDeviceID selectAudioDeviceID(const int manualAudioDeviceID)
 {
     SDL_AudioDeviceID deviceId;
 
@@ -170,36 +188,12 @@ static SDL_AudioDeviceID selectAudioDeviceID()
     return deviceId;
 }
 
-
-
-void playSound(enum Sound sound)
-{
-    if (sound == SOUND_BEEP_NORMAL)
-    {
-        // -q disables the print message when playing.
-        // -D hw:3,0 uses third sound device.
-        //system("aplay -q -D hw:3,0 " BEEP_NORMAL_FILE_PATH);
-
-        Mix_PlayChannel(-1, sounds.beepNormal, 0);
-    }
-
-    else if (sound == SOUND_BEEP_SUCCESS)
-    {
-        Mix_PlayChannel(-1, sounds.beepSuccess, 0);
-    }
-
-    else if (sound == SOUND_BEEP_ERROR)
-    {
-        Mix_PlayChannel(-1, sounds.beepError, 0);
-    }
-}
-
-void cleanupSounds()
+void cleanupSounds(struct SoundsConfig *soundsConfig)
 {
     // Free loaded sound chunks.
-    Mix_FreeChunk(sounds.beepNormal);
-    Mix_FreeChunk(sounds.beepSuccess);
-    Mix_FreeChunk(sounds.beepError);
+    Mix_FreeChunk(soundsConfig->sounds.beepNormal);
+    Mix_FreeChunk(soundsConfig->sounds.beepSuccess);
+    Mix_FreeChunk(soundsConfig->sounds.beepError);
 
     Mix_Quit();
     SDL_Quit();

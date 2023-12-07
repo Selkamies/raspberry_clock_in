@@ -6,7 +6,7 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.h.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-12-05
+ * @date Modified 2023-12-07
  * 
  * @copyright Copyright (c) 2023
  */
@@ -15,6 +15,11 @@
 
 #ifndef KEYPAD_H
 #define KEYPAD_H
+
+
+
+#include "leds_config.h"
+#include "sounds_config.h"
 
 
 
@@ -52,7 +57,7 @@ struct KeypadConfig
 /**
  * @brief Updates the keypad status and handles key presses if necessary.
  */
-void updateKeypad();
+void updateKeypad(struct LEDConfig *LEDConfigData, struct SoundsConfig *soundsConfig);
 
 
 
@@ -85,7 +90,7 @@ void initializeKeypad();
 /**
  * @brief Frees all arrays used by keypad requiring malloc/calloc.
  */
-void cleanupKeypad();
+void cleanupKeypad(struct LEDConfig *LEDConfigData);
 
 
 

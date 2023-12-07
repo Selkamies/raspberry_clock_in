@@ -5,7 +5,7 @@
  * @brief 
  * 
  * @date Created 2023-12-05
- * @date Modified 2023-12-05
+ * @date Modified 2023-12-07
  * 
  * @copyright Copyright (c) 2023
  */
@@ -14,6 +14,10 @@
 
 #ifndef LEDS_CONFIG_H
 #define LEDS_CONFIG_H
+
+
+
+#include "stdbool.h"
 
 
 
