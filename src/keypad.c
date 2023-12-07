@@ -10,8 +10,6 @@
  * 
  * @copyright Copyright (c) 2023
  * 
- * TODO: Start getting keypadState.keys from config_handler in setKeypadValues().
- * TODO: Move getCurrentTimeInSeconds() to it's own file? It can be used by leds.c.
  * TODO: Actually check the PINs from a database when it and the code handling it exists.
  */
 
@@ -28,8 +26,7 @@
 #include "sounds.h"             // playSound().
 #include "timer.h"              // getCurrentTimeInSeconds().
 #include "config_data.h"        // struct ConfigData.
-//#include "keypad_config.h"
-//#include "leds_config.h"
+#include "keypad_config.h"      // struct KeypadConfig, struct KeypadState, struct PINState.
 
 
 
@@ -138,55 +135,60 @@ static bool enoughTimeSinceLastKeypadUpdate(const double lastUpdateTime, const d
 
 void updateKeypad(struct ConfigData *configData)
 {
-    if (enoughTimeSinceLastKeypadUpdate(configData->keypadConfig.keypadState.lastUpdateTime, 
-                                        configData->keypadConfig.UPDATE_INTERVAL_SECONDS))
-    {
-        updateKeypadStatus(&configData->keypadConfig);
+    // For readability.
+    struct KeypadConfig *keypadConfig = &configData->keypadConfig;
+    struct KeypadState *keypadState = &keypadConfig->keypadState;
 
-        if (configData->keypadConfig.keypadState.exactlyOneKeyPressed && 
-            configData->keypadConfig.keypadState.noKeysPressedPreviously)
+    if (enoughTimeSinceLastKeypadUpdate(keypadState->lastUpdateTime, keypadConfig->UPDATE_INTERVAL_SECONDS))
+    {
+        updateKeypadStatus(keypadConfig);
+
+        if (keypadState->exactlyOneKeyPressed && keypadState->noKeysPressedPreviously)
         {
-            storeKeyPress(configData, configData->keypadConfig.keypadState.keyPressed);
+            storeKeyPress(configData, keypadState->keyPressed);
         }
 
-        configData->keypadConfig.keypadState.noKeysPressedPreviously = !configData->keypadConfig.keypadState.anyKeysPressed;
+        keypadState->noKeysPressedPreviously = !keypadState->anyKeysPressed;
 
-        if (tooLongSinceLastKeypress(&configData->keypadConfig))
+        if (tooLongSinceLastKeypress(keypadConfig))
         {
             timeoutPIN(configData);
         }
 
-        configData->keypadConfig.keypadState.lastUpdateTime = getCurrentTimeInSeconds();
+        keypadState->lastUpdateTime = getCurrentTimeInSeconds();
     }
 } 
 
 static void updateKeypadStatus(struct KeypadConfig *keypadConfig)
 {
+    // For readability.
+    struct KeypadState *keypadState = &keypadConfig->keypadState;
+
     // Number of keys that are pressed/down this update.
     int keysNowPressedCount = loopThroughKeys(keypadConfig);
 
     if (keysNowPressedCount == 0)
     {
         //printf("No keys pressed.\n");
-        keypadConfig->keypadState.keyPressed = EMPTY_KEY;
-        keypadConfig->keypadState.anyKeysPressed = false;
-        keypadConfig->keypadState.exactlyOneKeyPressed = false; 
+        keypadState->keyPressed = EMPTY_KEY;
+        keypadState->anyKeysPressed = false;
+        keypadState->exactlyOneKeyPressed = false; 
     }
 
     else if (keysNowPressedCount == 1)
     {
         //printf("Exactly one key pressed.\n");
-        keypadConfig->keypadState.anyKeysPressed = true;
-        keypadConfig->keypadState.exactlyOneKeyPressed = true;
+        keypadState->anyKeysPressed = true;
+        keypadState->exactlyOneKeyPressed = true;
     }
 
     else if (keysNowPressedCount > 1)
     {
         //printf("Too many keys pressed.\n");
-        keypadConfig->keypadState.anyKeysPressed = true;
-        keypadConfig->keypadState.exactlyOneKeyPressed = false;
+        keypadState->anyKeysPressed = true;
+        keypadState->exactlyOneKeyPressed = false;
         // This isn't necessary, but we should probably do it just in case.
-        keypadConfig->keypadState.keyPressed = EMPTY_KEY;
+        keypadState->keyPressed = EMPTY_KEY;
     }
 }
 
@@ -234,27 +236,30 @@ static int loopThroughKeys(struct KeypadConfig *keypadConfig)
 
 static void storeKeyPress(struct ConfigData *configData, const char key)
 {
+    // For readability.
+    struct PINState *currentPINState = &configData->keypadConfig.currentPINState;
+
     // If the there's a led still on, turn it off when we get the first input.
     turnLEDsOff(&configData->LEDConfigData);
 
     // Save the pressed key and record the time.
-    configData->keypadConfig.currentPINState.keyPresses[configData->keypadConfig.currentPINState.nextPressIndex] = key;
+    currentPINState->keyPresses[currentPINState->nextPressIndex] = key;
     startTimeoutTimer(&configData->keypadConfig.currentPINState);
 
-    printf("Character %d / %d of PIN entered. Character %c. ", configData->keypadConfig.currentPINState.nextPressIndex + 1, 
+    printf("Character %d / %d of PIN entered. Character %c. ", currentPINState->nextPressIndex + 1, 
                                                                configData->keypadConfig.MAX_PIN_LENGTH, key);
-    printf("PIN: %s\n", configData->keypadConfig.currentPINState.keyPresses);
+    printf("PIN: %s\n", currentPINState->keyPresses);
 
-    configData->keypadConfig.currentPINState.nextPressIndex++;
+    currentPINState->nextPressIndex++;
 
     // If the next key press index would be at the pin length, we just received the last key for the PIN (by length).
     // Check the pin for validity and clear the saved pin.
-    if (configData->keypadConfig.currentPINState.nextPressIndex >= configData->keypadConfig.MAX_PIN_LENGTH)
+    if (currentPINState->nextPressIndex >= configData->keypadConfig.MAX_PIN_LENGTH)
     {
-        if (validPIN(configData->keypadConfig.currentPINState.keyPresses))
+        if (validPIN(currentPINState->keyPresses))
         {
             // TODO: Do database things.
-            printf("\nCORRECT PIN! - %s \n\n", configData->keypadConfig.currentPINState.keyPresses);
+            printf("\nCORRECT PIN! - %s \n\n", currentPINState->keyPresses);
 
             turnLEDOn(&configData->LEDConfigData, false, true, false);      // Green light.
             playSound(&configData->soundsConfig, SOUND_BEEP_SUCCESS);
@@ -262,14 +267,14 @@ static void storeKeyPress(struct ConfigData *configData, const char key)
 
         else
         {
-            printf("\nPIN REJECTED! - %s \n\n", configData->keypadConfig.currentPINState.keyPresses);
+            printf("\nPIN REJECTED! - %s \n\n", currentPINState->keyPresses);
 
             turnLEDOn(&configData->LEDConfigData, true, false, false);      // Red light.
             playSound(&configData->soundsConfig, SOUND_BEEP_ERROR);
         }
 
         clearPIN(&configData->keypadConfig);
-        stopTimeoutTimer(&configData->keypadConfig.currentPINState);
+        stopTimeoutTimer(currentPINState);
     }
 
     else
