@@ -54,9 +54,17 @@ void turnLEDsOff(struct LEDConfig *LEDConfigData);
 
 /**
  * @brief Initialize some variables to their default states.
+ * 
  * @param LEDConfigData Struct holding all the variables needed by leds.c.
  */
 void initializeLeds(struct LEDConfig *LEDConfigData);
+
+/**
+ * @brief Turns off LEDs and cleans up any resources used by leds.c.
+ * 
+ * @param LEDConfigData
+ */
+void cleanupLEDs(struct LEDConfig *LEDConfigData);
 
 
 

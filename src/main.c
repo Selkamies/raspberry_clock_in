@@ -22,13 +22,14 @@
 
 #include "gpio_init.h"          // initializeGPIOLibrary(), sleepGPIOLibrary(), cleanupGPIOLibrary().
 #include "config_handler.h"     // readConfigFile().
+
 #include "keypad.h"             // initializeKeypad(), updatekeypad(), cleanupKeypad().
-#include "leds.h"               // initializeLeds(), updateLED().
+#include "leds.h"               // initializeLeds(), updateLED(), cleanupLEDs().
 #include "sounds.h"             // initializeSounds(), cleanupSounds().
 
-//#include "keypad_config.h"      // struct KeypadConfig.
-//#include "leds_config.h"        // struct LEDConfig.
-//#include "sounds_config.h"      // struct SoundsConfig.
+#include "keypad_config.h"      // struct KeypadConfig.
+#include "leds_config.h"        // struct LEDConfig.
+#include "sounds_config.h"      // struct SoundsConfig.
 
 
 
@@ -72,9 +73,8 @@ void initialize(struct ConfigData *configData)
  */
 void cleanup(struct ConfigData *configData)
 {
-    turnLEDsOff(&configData->LEDConfigData);
-
     cleanupKeypad(&configData->keypadConfig);
+    cleanupLEDs(&configData->LEDConfigData);
     cleanupSounds(&configData->soundsConfig);
 
     cleanupGPIOLibrary();

@@ -15,10 +15,11 @@
 #include <stdbool.h>
 
 #include "leds.h"
+#include "leds_config.h"        // struct LEDConfig.
 
 #include "gpio_functions.h"     // turnGPIOPinOn(), turnGPIOPinOff().
 #include "timer.h"              // getCurrentTimeInSeconds()
-#include "leds_config.h"        // struct LEDConfig.
+
 
 
 
@@ -80,4 +81,9 @@ void initializeLeds(struct LEDConfig *LEDConfigData)
 {
     LEDConfigData->LEDCurrentStatus.LEDIsOn = false;
     LEDConfigData->LEDCurrentStatus.LEDStartTime = 0;
+}
+
+void cleanupLEDs(struct LEDConfig *LEDConfigData)
+{
+    turnLEDsOff(LEDConfigData);
 }
