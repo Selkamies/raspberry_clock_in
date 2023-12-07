@@ -23,7 +23,7 @@
 
 
 /**
- * @brief Reads key-value pairs from config.ini and passes relevant values to other files.
+ * @brief Reads value from config.ini to a struct.
  * 
  * @param configData Struct holding basically all variables used by the program.
  */

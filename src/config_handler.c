@@ -14,13 +14,13 @@
 
 
 
-#include <stdio.h>      // printf(), snprintf().
-#include <stdlib.h>     // atoi(), strtod().
-#include <string.h>     // strcmp(), strstr(), sscanf().
+#include <stdio.h>              // printf(), snprintf().
+#include <stdlib.h>             // atoi(), strtod().
+#include <string.h>             // strcmp(), strstr(), sscanf().
 #include <stdbool.h>
 
 #include "config_handler.h"
-//#include "config_data.h"
+#include "config_data.h"        // struct ConfigData.
 
 
 
@@ -143,8 +143,6 @@ static void readSoundData(struct ConfigData *configData, const char *key, const 
 
 void readConfigFile(struct ConfigData *configData)
 {
-    configData->keypadConfig.keypadState.keys = NULL;
-
     printf("Reading config.ini.\n");
 
     FILE *file = fopen(fileName, "r");
@@ -344,7 +342,6 @@ static void readLEDData(struct ConfigData *configData, const char *key, const ch
 
     if (strcmp(key, KEY_LED_STAYS_ON_FOR) == 0)
     {
-        //configData->LEDStaysOnFor = atoi(value);
         configData->LEDConfigData.LEDCurrentStatus.LEDStaysOnFor = atoi(value);
     }
 
