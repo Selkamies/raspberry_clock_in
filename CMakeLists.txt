@@ -21,6 +21,7 @@ set(SOURCES
     src/leds.c
     src/sounds.c
     src/timer.c
+    src/database.c
 )
 
 # List all header files
@@ -59,6 +60,11 @@ find_package(SDL2_mixer REQUIRED)
 target_include_directories(clock_in PRIVATE ${SDL2_MIXER_INCLUDE_DIRS})
 #target_link_libraries(clock_in ${SDL2_MIXER_LIBRARIES})
 target_link_libraries(clock_in SDL2_mixer)
+
+# Find SQLite3.
+find_package(SQLite3 REQUIRED)
+target_include_directories(clock_in PRIVATE ${SQLite3_INCLUDE_DIRS})
+target_link_libraries(clock_in ${SQLite3_LIBRARIES})
 
 # Add any external libraries
 # target_link_libraries(your_target_name external_lib)
