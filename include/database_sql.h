@@ -1,12 +1,11 @@
 /**
- * @file database_config.h
+ * @file database_sql.h
  * @author Selkamies
  * 
- * @brief Holds important database values. Depending on file contents, 
- * this file should not be exposed to GitHub normally, but this is an exercise, so it will be included.
+ * @brief Holds #defines with SQL variables like table and column names and SQL statements.
 
  * @date Created  2023-12-08
- * @date Modified 2023-12-09
+ * @date Modified 2023-12-11
  * 
  * @copyright Copyright (c) 2023
  */

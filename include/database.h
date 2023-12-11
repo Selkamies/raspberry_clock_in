@@ -5,7 +5,7 @@
  * @brief Database operations.
  * 
  * @date Created  2023-12-08
- * @date Modified 2023-12-09
+ * @date Modified 2023-12-11
  * 
  * @copyright Copyright (c) 2023
  */
@@ -21,6 +21,23 @@
 #include <sqlite3.h>            // sqlite3.
 
 
+
+#define DATABASE_PATH "database/"
+#define DATABASE_NAME "database.db"
+#define DATABASE_FILEPATH DATABASE_PATH DATABASE_NAME
+
+
+
+/**
+ * @brief Checks if the database exists, and if not, creates a new one with tables.
+ * 
+ * @param database Database we're using.
+ * @param filePath Path with the database file name, relative to the executable location.
+ * 
+ * @return true If the database already exists or a new one was created successfully.
+ * @return false If something went wrong when opening the database or creating a new one.
+ */
+bool openOrCreateDatabase(sqlite3 **database, const char *const filePath);
 
 /**
  * @brief Selects user ID from the database user table using a PIN code.
@@ -45,22 +62,12 @@ bool selectUserIDByPIN(sqlite3 **database, const char *const pin, int *user_id_p
  */
 bool insertLogRow(sqlite3 **database, const int user_id);
 
-/**
- * @brief Inserts test data to users table.
- * 
- * @param database Database we're using.
- * 
- * @return true If the insert was successful.
- * @return false If something went wrong with the insert.
- */
-bool insertUserTestData(sqlite3 **database);
-
 
 
 int show_menu();
-int create_db(sqlite3 **db, char *db_name);
-int create_table_user(sqlite3 **db);
-int create_table_log(sqlite3 **db);
+//int create_db(sqlite3 **db, char *db_name);
+//int create_table_user(sqlite3 **db);
+//int create_table_log(sqlite3 **db);
 int insert_user_row(sqlite3 **db, char *rfid_id, char *name, int pin);
 //int insert_log_row(sqlite3 **db, int user_id, int status);
 int show_table_user(sqlite3 **db);
