@@ -41,6 +41,17 @@ typedef void (*RowCallback)(sqlite3_stmt *statement, void *data);
 static bool createTables(sqlite3 **database);
 
 /**
+ * @brief Checks if a table already exists in the database.
+ * 
+ * @param database Database we're using.
+ * @param tableName Name of the table to check.
+ * 
+ * @return true If the table already exists.
+ * @return false If the table doesn't exist.
+ */
+static bool tableExists(sqlite3 **database, const char *tableName);
+
+/**
  * @brief Inserts test data to users table.
  * 
  * @param database Database we're using.
@@ -86,9 +97,9 @@ bool openOrCreateDatabase(sqlite3 **database, const char *const filePath)
       return false;
    }
 
-   if (createTables(database))
+   if (!tableExists(database, TABLE_USER) && !tableExists(database, TABLE_LOG)) 
    {
-      // TODO: Duplicate test data gets created.
+      createTables(database);
       insertUserTestData(database);
    }
 
@@ -101,6 +112,31 @@ bool openOrCreateDatabase(sqlite3 **database, const char *const filePath)
    }
 
    return true;
+}
+
+static bool tableExists(sqlite3 **database, const char *tableName)
+{;
+    sqlite3_stmt *statement;
+
+    int resultCode = sqlite3_prepare_v2(*database, SELECT_TABLE_EXISTS, -1, &statement, 0);
+
+    if (resultCode != SQLITE_OK)
+    {
+        fprintf(stderr, "SQL error: %s\n", sqlite3_errmsg(*database));
+        return false;
+    }
+
+    sqlite3_bind_text(statement, 1, tableName, -1, SQLITE_STATIC);
+
+    int exists = 0;
+    if (sqlite3_step(statement) == SQLITE_ROW)
+    {
+        exists = 1;
+    }
+
+    sqlite3_finalize(statement);
+
+    return exists;
 }
 
 static bool createTables(sqlite3 **database)

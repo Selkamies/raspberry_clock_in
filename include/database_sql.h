@@ -17,6 +17,8 @@
 
 
 
+#define SELECT_TABLE_EXISTS "SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?;"
+
 ////////////////
 // USER TABLE //
 ////////////////
