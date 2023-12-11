@@ -6,7 +6,7 @@
  * ConfigData has substructs for separating the data used by keypad, leds and sounds.
  * 
  * @date Created 2023-12-05
- * @date Modified 2023-12-07
+ * @date Modified 2023-12-11
  * 
  * @copyright Copyright (c) 2023
  */
@@ -17,6 +17,7 @@
 #define CONFIG_DATA_H
 
 
+#include <sqlite3.h>             // sqlite3.
 
 // Cannot forward declare?
 #include "keypad_config.h"
@@ -36,6 +37,7 @@ struct ConfigData
     struct LEDConfig LEDConfigData;
     /** @brief Struct holding all the variables needed by sounds.c. */
     struct SoundsConfig soundsConfig;
+    sqlite3 **database;
 };
 
 

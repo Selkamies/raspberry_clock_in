@@ -22,7 +22,8 @@
 
 
 
-#define DATABASE_PATH "database/"
+// NOTE: The folder has to exists before trying to create the database file.
+#define DATABASE_PATH ""
 #define DATABASE_NAME "database.db"
 #define DATABASE_FILEPATH DATABASE_PATH DATABASE_NAME
 

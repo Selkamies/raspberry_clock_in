@@ -11,6 +11,9 @@ bin/
 # Cmake build folder.
 build/
 
+# SQLite database.
+*.db
+
 ## User settings
 xcuserdata/
 

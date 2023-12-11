@@ -7,7 +7,7 @@
  * they were already marked as present or not. Users and logs are stored in a database.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-12-07
+ * @date Modified 2023-12-11
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -27,9 +27,12 @@
 #include "leds.h"               // initializeLeds(), updateLED(), cleanupLEDs().
 #include "sounds.h"             // initializeSounds(), cleanupSounds().
 
+#include "config_data.h"        // struct ConfigData.
 #include "keypad_config.h"      // struct KeypadConfig.
 #include "leds_config.h"        // struct LEDConfig.
 #include "sounds_config.h"      // struct SoundsConfig.
+
+#include "database.h"           // openOrCreateDatabase(), DATABASE_FILEPATH.
 
 
 
@@ -62,6 +65,11 @@ void initialize(struct ConfigData *configData)
     }
 
     readConfigFile(configData);
+
+    sqlite3 *database = NULL;
+    configData->database = &database;
+    const char *const filePath = DATABASE_FILEPATH;
+    openOrCreateDatabase(configData->database, filePath);
 
     initializeKeypad(&configData->keypadConfig);
     initializeLeds(&configData->LEDConfigData);

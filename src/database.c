@@ -12,8 +12,9 @@
 
 
 
-#include <stdio.h>              // stderr.
+#include <stdio.h>               // stderr.
 #include <stdbool.h>
+#include <string.h>              // strcmp().
 
 #include <sqlite3.h>             // sqlite3, sqlite3_stmt, sqlite3_prepare_v2(), etc.
 
@@ -77,29 +78,18 @@ bool openOrCreateDatabase(sqlite3 **database, const char *const filePath)
 {
    int returnCode = sqlite3_open_v2(filePath, database, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
 
-   // Database already exists, no need to create new tables.
-   
-   if (returnCode == SQLITE_OK) 
+   // Something went wrong with opening or creating the database.
+   if (returnCode != SQLITE_OK) 
    {
-      return true;
-   }
-
-   // Database could not be opened, a new one was created.
-   else
-   {   
       fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(*database));
-   }
-
-   // Creating new tables failed.
-   if (!createTables(*database) || !insertUserTestData(*database))
-   {
-      // Check if the database is not already closed.
-      if (*database != NULL)
-      {
-         sqlite3_close(*database);
-      }
 
       return false;
+   }
+
+   if (createTables(database))
+   {
+      // TODO: Duplicate test data gets created.
+      insertUserTestData(database);
    }
 
    // Close the database and check if it was closed successfully.
@@ -115,26 +105,28 @@ bool openOrCreateDatabase(sqlite3 **database, const char *const filePath)
 
 static bool createTables(sqlite3 **database)
 {
-   int returnCode = sqlite3_exec(database, CREATE_TABLE_USER, 0, 0, 0);
+   int returnCode = sqlite3_exec(*database, CREATE_TABLE_USER, 0, 0, 0);
 
    if (returnCode != SQLITE_OK) 
    {
-      fprintf(stderr, "Cannot create table: %s\n", sqlite3_errmsg(database));
+      fprintf(stderr, "Cannot create table: %s\n", sqlite3_errmsg(*database));
       // openOrCreateDatabase() will close the database.
       //sqlite3_close(database);
 
       return false;
    }
 
-   returnCode = sqlite3_exec(database, CREATE_TABLE_LOG, 0, 0, 0);
+   returnCode = sqlite3_exec(*database, CREATE_TABLE_LOG, 0, 0, 0);
 
    if (returnCode != SQLITE_OK) 
    {
-      fprintf(stderr, "Cannot create table: %s\n", sqlite3_errmsg(database));
+      fprintf(stderr, "Cannot create table: %s\n", sqlite3_errmsg(*database));
       //sqlite3_close(database);
       
       return false;
    }
+
+   printf("Tables created.\n");
 
    return true;
 }
