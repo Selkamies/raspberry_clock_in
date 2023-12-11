@@ -47,7 +47,7 @@
             COLUMN_ID_USER " INTEGER PRIMARY KEY, " \
             COLUMN_FIRST_NAME_USER " TEXT NOT NULL, " \
             COLUMN_LAST_NAME_USER " TEXT NOT NULL, " \
-            COLUMN_PIN_USER " TEXT NOT NULL) STRICT;"
+            COLUMN_PIN_USER " TEXT NOT NULL UNIQUE) STRICT;"
 
 // ? is used by SQLite to bind values to.
 #define INSERT_USER_ROW \
@@ -66,7 +66,7 @@
     "VALUES " \
         "('first name', 'last name', '123A')," \
         "('John', 'Doe', 'ABCD')," \
-        "('Jane', 'Doe', '123A');"
+        "('Jane', 'Doe', '2580');"
 
 
 

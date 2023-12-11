@@ -6,7 +6,7 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.c.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-12-07
+ * @date Modified 2023-12-11
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -25,6 +25,8 @@
 #include "leds.h"               // turnLEDOn(), turnLEDsOff().
 #include "sounds.h"             // playSound().
 #include "timer.h"              // getCurrentTimeInSeconds().
+#include "database.h"           // 
+
 #include "config_data.h"        // struct ConfigData.
 #include "keypad_config.h"      // struct KeypadConfig, struct KeypadState, struct PINState.
 
@@ -77,12 +79,13 @@ static void clearPIN(struct KeypadConfig *keypadConfig);
  * @brief Checks the full PIN for validity. Currently mock checks.
  * TODO: Check database for existing person that has the passed PIN.
  * 
+ * @param database Database we're using.
  * @param pin_input The PIN to check.
  * 
  * @return true If the PIN matches.
  * @return false If the PIN doesn't have a match.
  */
-static bool validPIN(const char *pin_input);
+static bool validPIN(sqlite3 **database, const char *pin_input);
 
 /**
  * @brief Checks if it has been too long since the last keypress.
@@ -256,7 +259,7 @@ static void storeKeyPress(struct ConfigData *configData, const char key)
     // Check the pin for validity and clear the saved pin.
     if (currentPINState->nextPressIndex >= configData->keypadConfig.MAX_PIN_LENGTH)
     {
-        if (validPIN(currentPINState->keyPresses))
+        if (validPIN(configData->database, currentPINState->keyPresses))
         {
             // TODO: Do database things.
             printf("\nCORRECT PIN! - %s \n\n", currentPINState->keyPresses);
@@ -294,11 +297,19 @@ static void clearPIN(struct KeypadConfig *keypadConfig)
     }
 }
 
-static bool validPIN(const char *pin_input)
+static bool validPIN(sqlite3 **database, const char *pin_input)
 {
     // TODO: Check if we find user with this PIN from database.
-    if (strcmp(pin_input, "123A") == 0)
+    /* if (strcmp(pin_input, "123A") == 0)
     {
+        return true;
+    } */
+
+    int *userIDPointer;
+
+    if (selectUserIDByPIN(database, pin_input, userIDPointer))
+    {
+        printf("PIN '%s' belongs to user id of '%d'.\n", pin_input, *userIDPointer);
 
         return true;
     }

@@ -87,31 +87,31 @@ static void selectUserIDByPINCallback(sqlite3_stmt *statement, void *data);
 
 bool openOrCreateDatabase(sqlite3 **database, const char *const filePath)
 {
-   int returnCode = sqlite3_open_v2(filePath, database, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+    int returnCode = sqlite3_open_v2(filePath, database, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
 
-   // Something went wrong with opening or creating the database.
-   if (returnCode != SQLITE_OK) 
-   {
-      fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(*database));
+    // Something went wrong with opening or creating the database.
+    if (returnCode != SQLITE_OK) 
+    {
+        fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(*database));
 
-      return false;
-   }
+        return false;
+    }
 
-   if (!tableExists(database, TABLE_USER) && !tableExists(database, TABLE_LOG)) 
-   {
-      createTables(database);
-      insertUserTestData(database);
-   }
+    if (!tableExists(database, TABLE_USER) && !tableExists(database, TABLE_LOG)) 
+    {
+        createTables(database);
+        insertUserTestData(database);
+    }
 
-   // Close the database and check if it was closed successfully.
-   if (*database != NULL && sqlite3_close(*database) != SQLITE_OK) 
-   {
-      fprintf(stderr, "Error closing database: %s\n", sqlite3_errmsg(*database));
-      
-      return false;
-   }
+    // Close the database and check if it was closed successfully.
+    /* if (*database != NULL && sqlite3_close(*database) != SQLITE_OK) 
+    {
+        fprintf(stderr, "Error closing database: %s\n", sqlite3_errmsg(*database));
+        
+        return false;
+    } */
 
-   return true;
+    return true;
 }
 
 static bool tableExists(sqlite3 **database, const char *tableName)
@@ -141,30 +141,30 @@ static bool tableExists(sqlite3 **database, const char *tableName)
 
 static bool createTables(sqlite3 **database)
 {
-   int returnCode = sqlite3_exec(*database, CREATE_TABLE_USER, 0, 0, 0);
+    int returnCode = sqlite3_exec(*database, CREATE_TABLE_USER, 0, 0, 0);
 
-   if (returnCode != SQLITE_OK) 
-   {
-      fprintf(stderr, "Cannot create table: %s\n", sqlite3_errmsg(*database));
-      // openOrCreateDatabase() will close the database.
-      //sqlite3_close(database);
+    if (returnCode != SQLITE_OK) 
+    {
+        fprintf(stderr, "Cannot create table: %s\n", sqlite3_errmsg(*database));
+        // openOrCreateDatabase() will close the database.
+        //sqlite3_close(database);
 
-      return false;
-   }
+        return false;
+    }
 
-   returnCode = sqlite3_exec(*database, CREATE_TABLE_LOG, 0, 0, 0);
+    returnCode = sqlite3_exec(*database, CREATE_TABLE_LOG, 0, 0, 0);
 
-   if (returnCode != SQLITE_OK) 
-   {
-      fprintf(stderr, "Cannot create table: %s\n", sqlite3_errmsg(*database));
-      //sqlite3_close(database);
-      
-      return false;
-   }
+    if (returnCode != SQLITE_OK) 
+    {
+        fprintf(stderr, "Cannot create table: %s\n", sqlite3_errmsg(*database));
+        //sqlite3_close(database);
+        
+        return false;
+    }
 
-   printf("Tables created.\n");
+    printf("Tables created.\n");
 
-   return true;
+    return true;
 }
 
 static bool insertUserTestData(sqlite3 **database)
@@ -189,6 +189,16 @@ static bool executeStatement(sqlite3_stmt *statement, RowCallback callback, void
 {
     int resultCode;
 
+    /* resultCode = sqlite3_step(statement);
+
+    if (resultCode != SQLITE_ROW) 
+    {
+        fprintf(stderr, "No rows in the result set.\n");
+        sqlite3_finalize(statement);
+
+        return false;
+    } */
+
     // Execute the prepared statement row by row. Result code will be SQLITE_DONE when all rows are done.
     while ((resultCode = sqlite3_step(statement)) == SQLITE_ROW)
     {
@@ -199,6 +209,8 @@ static bool executeStatement(sqlite3_stmt *statement, RowCallback callback, void
             callback(statement, data);
         }
     }
+
+    printf("Before finalize.\n");
 
     // Finalize the statement. This frees up memory/resources created for the statement.
     sqlite3_finalize(statement);
@@ -224,22 +236,38 @@ bool selectUserIDByPIN(sqlite3 **database, const char *const pin, int *user_id_p
     // SQL statement in a format that SQLite uses.
     sqlite3_stmt *statement;
 
+    char *sql = "SELECT id FROM user WHERE pin = ?;";
+    //char *sql = "SELECT id FROM user WHERE pin = '123A';";
+
+    //printf("SQL: '%s'.\n", sql);
+
     // Compiles the sql statement from string (SELECT_USER_ID_BY_PIN) to a format (*statement) that SQLite uses.
     // -1 (int nByte) tells to use the length of the entire string statement.
     // 0 (const char **psTail) is an output parameter.
-    int resultCode = sqlite3_prepare_v2(*database, SELECT_USER_ID_BY_PIN, -1, &statement, 0);
+    //int resultCode = sqlite3_prepare_v2(*database, SELECT_USER_ID_BY_PIN, -1, &statement, 0);
+    int resultCode = sqlite3_prepare_v2(*database, sql, -1, &statement, 0);
+
+    printf("sqlite3_prepare_v2 resultCode: '%d'.\n", resultCode);
+
+    //printf("SQL statement: '%s'.\n", SELECT_USER_ID_BY_PIN);
+    //printf("selectUserIDByPIN(), pin: '%s'.\n", pin);
 
     if (resultCode != SQLITE_OK)
     {
         fprintf(stderr, "SQL error: %s\n", sqlite3_errmsg(*database));
+
         return false;
     }
+
+    printf("After.\n");
 
     // Bind the pin value to the ? placeholder in the SQL statement.
     // 1 is the number of ? to bind to, in this case the first and only one.
     // -1 tells the function that the number of bytes should be determined automatically.
     // SQLITE_STATIC tells the function not to delete the string paratemer (pin) afterwards.
     sqlite3_bind_text(statement, 1, pin, -1, SQLITE_STATIC);
+
+    printf("Before execute.\n");
 
     // Pass the statement to a function that executes it. Since we're selecting something,
     // we also pass a callback function and data pointer to get the values we want to select.
@@ -249,10 +277,14 @@ bool selectUserIDByPIN(sqlite3 **database, const char *const pin, int *user_id_p
 // Callback function for selectUserIDByPIN. Callback functions are needed for SELECT statements.
 static void selectUserIDByPINCallback(sqlite3_stmt *statement, void *data)
 {
+    printf("Callback start.\n");
     // Cast the generic void pointer to int. This points to the same address as *data.
     int *user_id_ptr = (int *)data;
+    printf("Callback pointer cast.\n");
+    // TODO: We crash here.
     // Assigns the value to the pointer, which also changes original pointer passed as *data.
-    *user_id_ptr = sqlite3_column_int(statement, COLUMN_INDEX_ID_USER);
+    *user_id_ptr = sqlite3_column_int(statement, 0);
+    printf("Callback end.\n");
 }
 
 bool insertLogRow(sqlite3 **database, const int user_id)
