@@ -31,42 +31,14 @@
  */
 typedef void (*RowCallback)(sqlite3_stmt *statement, void *data);
 
-/**
- * @brief Create all the tables in the database.
- * 
- * @param database Database we're using.
- * @return true If the tables were created successfully.
- * @return false If something went wrong when creating the tables.
- */
-static bool createTables(sqlite3 **database);
 
-/**
- * @brief Checks if a table already exists in the database.
- * 
- * @param database Database we're using.
- * @param tableName Name of the table to check.
- * 
- * @return true If the table already exists.
- * @return false If the table doesn't exist.
- */
-static bool tableExists(sqlite3 **database, const char *tableName);
-
-/**
- * @brief Inserts test data to users table.
- * 
- * @param database Database we're using.
- * 
- * @return true If the insert was successful.
- * @return false If something went wrong with the insert.
- */
-static bool insertUserTestData(sqlite3 **database);
 
 /**
  * @brief Executes a SELECT SQL statement.
  * 
  * @param statement SQL statement in a format that SQLite uses.
- * @param callback Callback function for SELECT statements.
- * @param data Pointer to a variable or stuct to get return values from SELECT statements.
+ * @param callback Callback function for SELECT statements, for getting return values. Can be NULL.
+ * @param data Pointer to a variable or stuct to get return values from SELECT statements. Can be NULL.
  * 
  * @return true If the statement was executed successfully.
  * @return false If something went wrong with the statement.
@@ -82,6 +54,40 @@ static bool executeSelect(sqlite3_stmt *statement, RowCallback callback, void *d
  * @return false If something went wrong with the statement.
  */
 static bool executeInsert(sqlite3_stmt *statement);
+
+
+
+/**
+ * @brief Checks if a table already exists in the database.
+ * 
+ * @param database SQLite database we're using.
+ * @param tableName Name of the table to check.
+ * 
+ * @return true If the table already exists.
+ * @return false If the table doesn't exist.
+ */
+static bool tableExists(sqlite3 **database, const char *tableName);
+
+/**
+ * @brief Create all the tables in the database.
+ * 
+ * @param database SQLite database we're using.
+ * @return true If the tables were created successfully.
+ * @return false If something went wrong when creating the tables.
+ */
+static bool createTables(sqlite3 **database);
+
+/**
+ * @brief Inserts test data to users table.
+ * 
+ * @param database SQLite database we're using.
+ * 
+ * @return true If the insert was successful.
+ * @return false If something went wrong with the insert.
+ */
+static bool insertUserTestData(sqlite3 **database);
+
+
 
 /**
  * @brief Callback function for selectUserIDByPIN(), used to get SELECT statement data.
@@ -119,7 +125,6 @@ bool openOrCreateDatabase(sqlite3 **database, const char *const filePath)
 static bool tableExists(sqlite3 **database, const char *tableName)
 {;
     sqlite3_stmt *statement;
-
     int resultCode = sqlite3_prepare_v2(*database, SELECT_TABLE_EXISTS, -1, &statement, 0);
 
     if (resultCode != SQLITE_OK)
@@ -130,15 +135,7 @@ static bool tableExists(sqlite3 **database, const char *tableName)
 
     sqlite3_bind_text(statement, 1, tableName, -1, SQLITE_STATIC);
 
-    int exists = 0;
-    if (sqlite3_step(statement) == SQLITE_ROW)
-    {
-        exists = 1;
-    }
-
-    sqlite3_finalize(statement);
-
-    return exists;
+    return executeSelect(statement, NULL, NULL);
 }
 
 static bool createTables(sqlite3 **database)
@@ -200,7 +197,6 @@ static bool executeSelect(sqlite3_stmt *statement, RowCallback callback, void *d
     // Execute the prepared statement row by row and handle callbacks for return values.
     while (resultCode == SQLITE_ROW)
     {
-        // If a callback function is provided to get return values of SELECT, it's called here.
         if (callback)
         {
             // Callback function gets the statement and pointer to data we want back.
@@ -225,7 +221,7 @@ static bool executeInsert(sqlite3_stmt *statement)
     // Check the result code to determine success or failure.
     if (resultCode == SQLITE_DONE)
     {
-        fprintf(stdout, "Insert successful.\n");
+        //fprintf(stdout, "Insert successful.\n");
         sqlite3_finalize(statement);
 
         return true;
@@ -239,6 +235,8 @@ static bool executeInsert(sqlite3_stmt *statement)
         return false;
     }
 }
+
+
 
 bool selectUserIDByPIN(sqlite3 **database, const char *const pin, int *user_id_ptr)
 {
@@ -275,7 +273,7 @@ static void selectUserIDByPINCallback(sqlite3_stmt *statement, void *data)
     int *user_id_ptr = (int *)data;
 
     // Assigns the value to the pointer, which also changes original pointer passed as *data.
-    *user_id_ptr = sqlite3_column_int64(statement, 0);
+    *user_id_ptr = sqlite3_column_int(statement, 0);
 }
 
 bool insertLogRow(sqlite3 **database, const int user_id)
@@ -298,15 +296,15 @@ bool insertLogRow(sqlite3 **database, const int user_id)
 
 
 
-// TODO: Intellisense says sqlite3_callback is deprecated, but no idea about alternatives.
-typedef int (*sqlite3_callback)(
-   void*,    /* Data provided in the 4th argument of sqlite3_exec() */
-   int,      /* The number of columns in row */
-   char**,   /* An array of strings representing fields in the row */
-   char**    /* An array of strings representing column names */
-);
+// TODO: Intellisense says sqlite3_callback is deprecated?
+// typedef int (*sqlite3_callback)(
+//    void*,    // Data provided in the 4th argument of sqlite3_exec()
+//    int,      // The number of columns in row */
+//    char**,   // An array of strings representing fields in the row
+//    char**    // An array of strings representing column names
+// );
 
-static int callback(void *data, int argc, char **argv, char **azColName){
+/* static int callback(void *data, int argc, char **argv, char **azColName){
    int i;
    fprintf(stderr, "%s: ", (const char*)data);
    
@@ -316,8 +314,9 @@ static int callback(void *data, int argc, char **argv, char **azColName){
    
    printf("\n");
    return 0;
-}
-int show_menu(){
+} */
+
+/* int show_menu(){
 	int menu_choice;
 	
 printf("\n###############################################\n");
@@ -348,11 +347,8 @@ printf("Valitse toiminto numerolla (0-11) :");
 
   scanf("%d", &menu_choice);
   return menu_choice;
-}
-/*
- 
-  
-*/
+} */
+
 /* int create_db(sqlite3 **db, char *db_name){
    
    char *zErrMsg = 0;
@@ -419,15 +415,15 @@ printf("Valitse toiminto numerolla (0-11) :");
 	return rc;
 } */
 
-int insert_user_row(sqlite3 **db, char *rfid_id, char *name, int pin){
+/* int insert_user_row(sqlite3 **db, char *rfid_id, char *name, int pin){
 	char *zErrMsg = 0;
 	int rc=0;
 	char sql[500];
-/* Create SQL statement */
+// Create SQL statement
     sprintf(sql, "INSERT INTO USER (RFID_ID,NAME,PIN) "  \
         "VALUES ('%s', '%s', %d ) ;" ,rfid_id,name, pin);
  
-   /* Execute SQL statement */
+   // Execute SQL statement
    rc = sqlite3_exec(*db, sql, callback, 0, &zErrMsg);
    
    if( rc != SQLITE_OK ){
@@ -439,7 +435,7 @@ int insert_user_row(sqlite3 **db, char *rfid_id, char *name, int pin){
       return(1);
    }
 	return rc;
-}
+} */
 
 /* int insert_log_row(sqlite3 **db, int user_id, int status){
 	char *zErrMsg = 0;
@@ -462,16 +458,16 @@ int insert_user_row(sqlite3 **db, char *rfid_id, char *name, int pin){
 	return rc;
 } */
 
-int show_table_user(sqlite3 **db){
+/* int show_table_user(sqlite3 **db){
 	char *zErrMsg = 0;
 	int rc;
 	const char* data = "Callback function called\n";
 
 	char *sql;
-	/* Create SQL statement */
+	// Create SQL statement
    sql = "SELECT * from USER";
 
-   /* Execute SQL statement */
+   // Execute SQL statement
    rc = sqlite3_exec(*db, sql, callback, (void*)data, &zErrMsg);
    
       if( rc != SQLITE_OK ) {
@@ -483,16 +479,17 @@ int show_table_user(sqlite3 **db){
       return(1);
    }
 	return rc;
-}
-int show_table_log(sqlite3 **db){
+} */
+
+/* int show_table_log(sqlite3 **db){
 	char *zErrMsg = 0;
 	int rc;
 	const char* data = "Callback function called\n";
 	char *sql;
-	/* Create SQL statement */
+	// Create SQL statement
    sql = "SELECT * from LOG";
 
-   /* Execute SQL statement */
+   // Execute SQL statement
    rc = sqlite3_exec(*db, sql, callback, (void*)data, &zErrMsg);
    
      if( rc != SQLITE_OK ) {
@@ -504,9 +501,9 @@ int show_table_log(sqlite3 **db){
       return(1);
    }
 	return rc;
-}
+} */
 
-int update_user_table_name(sqlite3 **db, int user_id, char *rfid_id, char *name, int pin){
+/* int update_user_table_name(sqlite3 **db, int user_id, char *rfid_id, char *name, int pin){
 	char *zErrMsg = 0;
 	int rc;
 	const char* data = "Callback function called\n";
@@ -526,8 +523,9 @@ int update_user_table_name(sqlite3 **db, int user_id, char *rfid_id, char *name,
       return(1);
    }
 	return rc;
-}
-int update_log_row(sqlite3 **db, int user_id, int status, char *datetime, int log_id){
+} */
+
+/* int update_log_row(sqlite3 **db, int user_id, int status, char *datetime, int log_id){
 	char *zErrMsg = 0;
 	int rc;
 	const char* data = "Callback function called\n";
@@ -545,9 +543,9 @@ int update_log_row(sqlite3 **db, int user_id, int status, char *datetime, int lo
       return(1);
    }
 	return rc;
-}
+} */
 
-int remove_user_row(sqlite3 **db, int user_id){
+/* int remove_user_row(sqlite3 **db, int user_id){
 	char *zErrMsg = 0;
 	int rc;
 	const char* data = "Callback function called\n";
@@ -556,7 +554,7 @@ int remove_user_row(sqlite3 **db, int user_id){
 
    sprintf(sql, "DELETE from USER where USER_ID=%d; " ,user_id );
 
-   /* Execute SQL statement */
+   // Execute SQL statement
    rc = sqlite3_exec(*db, sql, callback, (void*)data, &zErrMsg);
      if( rc != SQLITE_OK ) {
       fprintf(stderr, "SQL error: %s\n", zErrMsg);
@@ -567,8 +565,9 @@ int remove_user_row(sqlite3 **db, int user_id){
       return(1);
    }
 	return rc;
-}
-int remove_log_row(sqlite3 **db, int log_id){
+} */
+
+/* int remove_log_row(sqlite3 **db, int log_id){
 	char *zErrMsg = 0;
 	int rc;
 	const char* data = "Callback function called\n";
@@ -577,7 +576,7 @@ int remove_log_row(sqlite3 **db, int log_id){
 
    sprintf(sql, "DELETE from LOG where LOG_ID=%d; " ,log_id );
 
-   /* Execute SQL statement */
+   // Execute SQL statement
    rc = sqlite3_exec(*db, sql, callback, (void*)data, &zErrMsg);
      if( rc != SQLITE_OK ) {
       fprintf(stderr, "SQL error: %s\n", zErrMsg);
@@ -588,8 +587,9 @@ int remove_log_row(sqlite3 **db, int log_id){
       return(1);
    }
 	return rc;
-}
-int select_user_id(sqlite3 **db, char *table, char *rfid_id){
+} */
+
+/* int select_user_id(sqlite3 **db, char *table, char *rfid_id){
 	char *zErrMsg = 0;
 	int rc;
 	const char* data = "Callback function called\n";
@@ -598,7 +598,7 @@ int select_user_id(sqlite3 **db, char *table, char *rfid_id){
 	char sql[500];
     sprintf(sql, "SELECT * from '%s' where RFID_ID='%s'; " ,table, rfid_id );
 
-   /* Execute SQL statement */
+   // Execute SQL statement
    rc = sqlite3_exec(*db, sql, callback, (void*)data, &zErrMsg);
    
       if( rc != SQLITE_OK ) {
@@ -611,8 +611,9 @@ int select_user_id(sqlite3 **db, char *table, char *rfid_id){
    }
 	return rc;
 	
-}
-int select_userid_by_rfidid(sqlite3 **db, char *rfid_id, int *user_id_ptr){
+} */
+
+/* int select_userid_by_rfidid(sqlite3 **db, char *rfid_id, int *user_id_ptr){
    
     char *err_msg = 0;
     sqlite3_stmt *res;
@@ -659,8 +660,9 @@ int select_userid_by_rfidid(sqlite3 **db, char *rfid_id, int *user_id_ptr){
 	}
 	
 	return rc;	
-}
-int select_pin_by_userid(sqlite3 **db, int user_id, int *pin_value){
+} */
+
+/* int select_pin_by_userid(sqlite3 **db, int user_id, int *pin_value){
    
     char *err_msg = 0;
     sqlite3_stmt *res;
@@ -707,12 +709,13 @@ int select_pin_by_userid(sqlite3 **db, int user_id, int *pin_value){
 	}
 	
 	return rc;	
-}
-void pause_ch(){
+} */
+
+/* void pause_ch(){
 	char ch;
 	while((getchar()) != '\n');
 		printf("\n\nEnter the Character to continue: ");
 							scanf("%c", &ch);
 	
-}
+} */
 

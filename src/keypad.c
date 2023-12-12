@@ -9,8 +9,6 @@
  * @date Modified 2023-12-12
  * 
  * @copyright Copyright (c) 2023
- * 
- * TODO: Actually check the PINs from a database when it and the code handling it exists.
  */
 
 
@@ -25,7 +23,7 @@
 #include "leds.h"               // turnLEDOn(), turnLEDsOff().
 #include "sounds.h"             // playSound().
 #include "timer.h"              // getCurrentTimeInSeconds().
-#include "database.h"           // 
+#include "database.h"           // selectUserIDByPIN(), insertLogRow().
 
 #include "config_data.h"        // struct ConfigData.
 #include "keypad_config.h"      // struct KeypadConfig, struct KeypadState, struct PINState.
@@ -264,11 +262,12 @@ static void storeKeyPress(struct ConfigData *configData, const char key)
 
         if (validPIN(configData->database, currentPINState->keyPresses, &userIDOfPIN))
         {
-            // TODO: Do database things.
             printf("\nCORRECT PIN! - '%s' - User ID: %d \n\n", currentPINState->keyPresses, userIDOfPIN);
 
             turnLEDOn(&configData->LEDConfigData, false, true, false);      // Green light.
             playSound(&configData->soundsConfig, SOUND_BEEP_SUCCESS);
+
+            insertLogRow(configData->database, userIDOfPIN);
         }
 
         else
