@@ -6,7 +6,7 @@ Features:
 <ul>
   <li>RGB LED displaying colors depending on user input.</li>
   <li>Sound output depending user input.</li>
-  <li>[Configuration file](config.ini) with settings for</li>
+  <li>[Configuration file](config/config.ini) with settings for</li>
     <ul>
       <li>Keypad size and the characters on the buttons.</li>
       <li>All GPIO pin numbers.</li>
