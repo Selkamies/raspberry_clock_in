@@ -2,7 +2,7 @@
 
 A clock-in device, where user can enter a PIN code using a keypad, and codes are validated from a database. Upon valid PIN, a log entry is saved to a database. 
 
-###Features
+### Features
 
 - RGB LED displaying colors depending on user input.
 - Sound output depending user input.
