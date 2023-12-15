@@ -96,6 +96,7 @@ int main()
 
     // Struct holding basically all variables used by the program.
     struct ConfigData configData;
+    configData.keypadConfig.keypadState.keys = NULL;
 
     initialize(&configData);
     mainLoop(&configData);
