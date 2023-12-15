@@ -5,7 +5,7 @@
  * @brief Database operations.
  * 
  * @date Created  2023-12-08
- * @date Modified 2023-12-12
+ * @date Modified 2023-12-15
  * 
  * @copyright Copyright (c) 2023
  */
@@ -26,6 +26,10 @@
 #define DATABASE_PATH ""
 #define DATABASE_NAME "database.db"
 #define DATABASE_FILEPATH DATABASE_PATH DATABASE_NAME
+
+#define LOG_STATUS_ERROR 0
+#define LOG_STATUS_IN 1
+#define LOG_STATUS_OUT 2
 
 
 
@@ -57,11 +61,14 @@ bool selectUserIDByPIN(sqlite3 **database, const char *const pin, int *user_id_p
  * 
  * @param database SQLite database we're using.
  * @param user_id User id number that will be added to the row.
+ * @param status
  * 
  * @return true If the insert was successful.
  * @return false If something went wrong with the insert.
  */
-bool insertLogRow(sqlite3 **database, const int user_id);
+bool insertLogRow(sqlite3 **database, const int user_id, const int status);
+
+bool selectUsersLatestLogStatus(sqlite3 **database, const int user_id, int *status_pointer);
 
 
 

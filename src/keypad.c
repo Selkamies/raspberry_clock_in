@@ -6,7 +6,7 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.c.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-12-12
+ * @date Modified 2023-12-15
  * 
  * @copyright Copyright (c) 2023
  */
@@ -267,7 +267,22 @@ static void storeKeyPress(struct ConfigData *configData, const char key)
             turnLEDOn(&configData->LEDConfigData, false, true, false);      // Green light.
             playSound(&configData->soundsConfig, SOUND_BEEP_SUCCESS);
 
-            insertLogRow(configData->database, userIDOfPIN);
+            int status = -1;
+            selectUsersLatestLogStatus(configData->database, userIDOfPIN, &status);
+
+            // TODO: Allow the user to select whether they're loggin in or out.
+            // TODO: Don't play sound and turn on LED, 
+            //       before we make sure the user isn't trying to log in or out twice in a row.
+
+            if (status == LOG_STATUS_IN)
+            {
+                insertLogRow(configData->database, userIDOfPIN, LOG_STATUS_OUT);
+            }
+
+            else
+            {
+                insertLogRow(configData->database, userIDOfPIN, LOG_STATUS_IN);
+            }
         }
 
         else

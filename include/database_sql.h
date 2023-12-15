@@ -5,7 +5,7 @@
  * @brief Holds #defines with SQL variables like table and column names and SQL statements.
 
  * @date Created  2023-12-08
- * @date Modified 2023-12-12
+ * @date Modified 2023-12-15
  * 
  * @copyright Copyright (c) 2023
  */
@@ -30,14 +30,6 @@
 #define COLUMN_FIRST_NAME_USER "first_name"
 #define COLUMN_LAST_NAME_USER "last_name"
 #define COLUMN_PIN_USER "pin"
-
-// Index of the columns in the user table. 
-// Needed by sqlite3_column_int() etc. in callback functions to get the return values for SELECT statements.
-
-#define COLUMN_INDEX_ID_USER 0
-#define COLUMN_INDEX_FIRST_NAME_USER 1
-#define COLUMN_INDEX_LAST_NAME_USER 2
-#define COLUMN_INDEX_PIN_USER 3
 
 // SQLite notes:
 // Adding AUTOINCREMENT to PRIMARY KEY is not recommended unless you explicitly need it.
@@ -83,10 +75,7 @@
 #define COLUMN_ID_LOG "id"
 #define COLUMN_USER_ID_LOG "user_id"
 #define COLUMN_DATETIME_LOG "datetime"
-
-#define COLUMN_INDEX_ID_LOG 0
-#define COLUMN_INDEX_USER_ID_LOG 1
-#define COLUMN_INDEX_DATETIME_LOG 2
+#define COLUMN_STATUS_LOG "status"
 
 // TODO: Is there a difference between (datetime('now')) and CURRENT_TIMESTAMP?
 #define CREATE_TABLE_LOG \
@@ -94,11 +83,19 @@
         COLUMN_ID_LOG " INTEGER PRIMARY KEY, " \
         COLUMN_USER_ID_LOG " INTEGER NOT NULL, " \
         COLUMN_DATETIME_LOG " TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL, " \
+        COLUMN_STATUS_LOG " INTEGER NOT NULL, " \
         "FOREIGN KEY (" COLUMN_USER_ID_LOG ") " \
             "REFERENCES " TABLE_USER " (" COLUMN_ID_USER ")) STRICT;"
 
 // We don't need to insert datetime, it's set automatically.
-#define INSERT_LOG_ROW "INSERT INTO " TABLE_LOG " (" COLUMN_USER_ID_LOG ") VALUES (?);"
+#define INSERT_LOG_ROW "INSERT INTO " TABLE_LOG " (" COLUMN_USER_ID_LOG ", " COLUMN_STATUS_LOG ") VALUES (?, ?);"
+
+// SELECTs the status on the latest log row of the user.
+#define SELECT_LOG_ROW_BY_USER_ID_LATEST \
+    "SELECT " COLUMN_STATUS_LOG \
+    " FROM " TABLE_LOG \
+    " WHERE " COLUMN_USER_ID_LOG " = ?" \
+    " ORDER BY " COLUMN_DATETIME_LOG " DESC LIMIT 1;"
 
 
 

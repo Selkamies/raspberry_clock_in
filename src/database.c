@@ -5,7 +5,7 @@
  * @brief Database operations.
  * 
  * @date Created  2023-12-08
- * @date Modified 2023-12-12
+ * @date Modified 2023-12-15
  * 
  * @copyright Copyright (c) 2023
  */
@@ -96,6 +96,8 @@ static bool insertUserTestData(sqlite3 **database);
  * @param data Pointer to the data we need back. In this case, user's ID number.
  */
 static void selectUserIDByPINCallback(sqlite3_stmt *statement, void *data);
+
+static void selectUsersLatestLogStatusCallback(sqlite3_stmt *statement, void *data);
 
 #pragma endregion // FunctionDeclatarions
 
@@ -273,10 +275,11 @@ static void selectUserIDByPINCallback(sqlite3_stmt *statement, void *data)
     int *user_id_ptr = (int *)data;
 
     // Assigns the value to the pointer, which also changes original pointer passed as *data.
+    // The second parameter is the index of the bindable parameter in the statement.
     *user_id_ptr = sqlite3_column_int(statement, 0);
 }
 
-bool insertLogRow(sqlite3 **database, const int user_id)
+bool insertLogRow(sqlite3 **database, const int user_id, const int status)
 {
     sqlite3_stmt *statement;
     int resultCode = sqlite3_prepare_v2(*database, INSERT_LOG_ROW, -1, &statement, 0);
@@ -288,8 +291,36 @@ bool insertLogRow(sqlite3 **database, const int user_id)
     }
 
     sqlite3_bind_int(statement, 1, user_id);
+    sqlite3_bind_int(statement, 2, status);
 
     return executeInsert(statement);
+}
+
+bool selectUsersLatestLogStatus(sqlite3 **database, const int user_id, int *status_pointer)
+{
+    sqlite3_stmt *statement;
+
+    int resultCode = sqlite3_prepare_v2(*database, SELECT_LOG_ROW_BY_USER_ID_LATEST, -1, &statement, 0);
+
+    if (resultCode != SQLITE_OK)
+    {
+        fprintf(stderr, "SQL error: %s\n", sqlite3_errmsg(*database));
+
+        return false;
+    }
+
+    sqlite3_bind_int(statement, 1, user_id);
+
+    return executeSelect(statement, selectUsersLatestLogStatusCallback, status_pointer);
+}
+
+static void selectUsersLatestLogStatusCallback(sqlite3_stmt *statement, void *data)
+{
+    // Cast the generic void pointer to int. This points to the same address as *data.
+    int *status_pointer = (int *)data;
+
+    // Assigns the value to the pointer, which also changes original pointer passed as *data.
+    *status_pointer = sqlite3_column_int(statement, 0);
 }
 
 
