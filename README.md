@@ -15,10 +15,10 @@ A clock-in device, where user can enter a PIN code using a keypad, and codes are
 TODO: Picture of the setup.
 
 ### External libraries used.
-- [pigpio](https://abyz.me.uk/rpi/pigpio/), for GPIO pin handling. [GitHub link.](https://github.com/joan2937/pigpio) License: [Public domain.](https://github.com/joan2937/pigpio/blob/master/UNLICENCE)
-- [SQLite](https://www.sqlite.org/index.html) database. License: [Public domain.](https://www.sqlite.org/copyright.html)
-- [Simple DirecMedia Layer, SDL2.](https://www.libsdl.org/), [GitHub link.](https://github.com/libsdl-org/SDL) License: [zlib license.](https://www.libsdl.org/license.php) And
-- [SDL_Mixer](https://github.com/libsdl-org/SDL_mixer) for sound output. License: [zlib license.](https://github.com/libsdl-org/SDL_mixer/blob/main/LICENSE.txt)
+- [pigpio](https://abyz.me.uk/rpi/pigpio/), for GPIO pin handling. [GitHub link](https://github.com/joan2937/pigpio). License: [Public domain](https://github.com/joan2937/pigpio/blob/master/UNLICENCE).
+- [SQLite](https://www.sqlite.org/index.html) database. License: [Public domain](https://www.sqlite.org/copyright.html).
+- [Simple DirecMedia Layer, SDL2](https://www.libsdl.org/). [GitHub link](https://github.com/libsdl-org/SDL). License: [zlib license.](https://www.libsdl.org/license.php) And
+- [SDL_Mixer](https://github.com/libsdl-org/SDL_mixer) for sound output. License: [zlib license](https://github.com/libsdl-org/SDL_mixer/blob/main/LICENSE.txt).
 
 ### Credits
 [Selkamies](https://github.com/Selkamies)
