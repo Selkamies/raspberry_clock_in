@@ -21,7 +21,7 @@ TODO: Picture of the setup.
 - [SDL_Mixer](https://github.com/libsdl-org/SDL_mixer) for sound output. License: [zlib license](https://github.com/libsdl-org/SDL_mixer/blob/main/LICENSE.txt).
 
 ### Credits
-[Selkamies](https://github.com/Selkamies)
-[jaakho](https://github.com/jaakho)
+- [Selkamies](https://github.com/Selkamies)
+- [jaakho](https://github.com/jaakho)
 
 ### TODO: License.
