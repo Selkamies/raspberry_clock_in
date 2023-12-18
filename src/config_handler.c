@@ -5,7 +5,7 @@
  * @brief Reads key-value pairs from config.ini and passes relevant values to other files.
  * 
  * @date Created 2023-11-14
- * @date Modified 2023-12-07
+ * @date Modified 2023-12-18
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -52,6 +52,9 @@
 #define KEY_KEYPAD_ROW_D "KEYPAD_ROW_%d"
 #define KEY_PREFIX_KEYPAD_COLUMN_D "KEYPAD_COLUMN_"
 #define KEY_KEYPAD_COLUMN_D "KEYPAD_COLUMN_%d"
+
+#define CLOCK_IN_KEY "CLOCK_IN_KEY"
+#define CLOCK_OUT_KEY "CLOCK_OUT_KEY"
 
 #define KEY_LED_STAYS_ON_FOR "LED_STAYS_ON_FOR"
 #define KEY_LED_RED_GPIO "LED_RED"
@@ -304,6 +307,16 @@ static void readKeypadData(struct ConfigData *configData, const char *key, const
             // Store the key in the dynamically allocated keys array.
             configData->keypadConfig.keypadState.keys[rowIndex][columnIndex] = value[0];
         }
+    }
+
+    else if (strcmp(key, CLOCK_IN_KEY) == 0)
+    {
+        configData->keypadConfig.keypadState.clockInKey = value[0];
+    }
+
+    else if (strcmp(key, CLOCK_OUT_KEY) == 0)
+    {
+        configData->keypadConfig.keypadState.clockOutKey = value[0];
     }
 
     ///////////////////////////////

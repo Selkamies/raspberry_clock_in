@@ -160,7 +160,7 @@ void updateKeypad(struct ConfigData *configData)
                 {
                     keypadConfig->currentPINState.status = LOG_STATUS_IN;
 
-                    printf("\nWaiting for clock IN.\n");
+                    printf("Waiting for clock IN.\n\n");
                 }
 
                 else if (keypadState->keyPressed == keypadState->clockOutKey)
@@ -168,7 +168,7 @@ void updateKeypad(struct ConfigData *configData)
                     
                     keypadConfig->currentPINState.status = LOG_STATUS_OUT;
                     
-                    printf("\nWaiting for clock OUT.\n");
+                    printf("Waiting for clock OUT.\n\n");
                 }
 
                 keypadConfig->currentPINState.waitingForPINInput = true;
@@ -460,14 +460,6 @@ void initializeKeypad(struct KeypadConfig *keypadConfig)
     keypadConfig->keypadState.anyKeysPressed = false;
     keypadConfig->keypadState.lastUpdateTime = getCurrentTimeInSeconds();
 
-    keypadConfig->keypadState.clockInKey = '*';
-    keypadConfig->keypadState.clockOutKey = '#';
-
-    if (keypadConfig->keypadState.keysPressedPreviously == NULL) 
-    {
-        printf("\nERROR: Memory allocation failure in keypad.c, initializeKeyboard(), keypadState.keysPressedPreviously!\n");
-    }
-
     for (int index = 0; index < keypadConfig->KEYPAD_ROWS; index++) 
     {
         // Initializes all pressed states to 0 (false).
@@ -478,11 +470,6 @@ void initializeKeypad(struct KeypadConfig *keypadConfig)
             printf("\nERROR: Memory allocation failure in keypad.c, initializeKeyboard(), keypadState.keysPressedPreviously[%d]!\n", index);
         }
     }
-
-    /* if (keypadState.keys == NULL) 
-    {
-        printf("\nERROR: Memory allocation failure in keypad.c, initializeKeyboard(), keypadState.keys!\n");
-    } */
 }
 
 void cleanupKeypad(struct KeypadConfig *keypadConfig)
