@@ -181,7 +181,6 @@ void updateKeypad(struct ConfigData *configData)
         if (tooLongSinceLastKeypress(keypadConfig))
         {
             timeoutPIN(configData);
-            keypadConfig->currentPINState.waitingForPINInput = false;
         }
 
         keypadState->lastUpdateTime = getCurrentTimeInSeconds();
@@ -373,6 +372,7 @@ static void timeoutPIN(struct ConfigData *configData)
     // Yellow led.
     turnLEDOn(&configData->LEDConfigData, true, true, false);
     clearPIN(&configData->keypadConfig);
+    configData->keypadConfig.currentPINState.waitingForPINInput = false;
     stopTimeoutTimer(&configData->keypadConfig.currentPINState);
 
     playSound(&configData->soundsConfig, SOUND_BEEP_ERROR);
