@@ -5,7 +5,7 @@
  * @brief Defines KeypadConfig struct, which holds basically all data used by the keypad.c.
  * 
  * @date Created  2023-12-07
- * @date Modified 2023-12-07
+ * @date Modified 2023-12-18
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -43,6 +43,9 @@ struct KeypadState
     bool noKeysPressedPreviously;
     /** @brief Time when last keypad update was done. */
     double lastUpdateTime;
+
+    char clockInKey;
+    char clockOutKey;
 };
 
 /**
@@ -58,6 +61,9 @@ struct PINState
     double lastKeyPressTime;
     /** @brief Array holding the PIN being entered. */
     char *keyPresses;
+
+    bool waitingForPINInput;
+    int status;
 };
 
 /**

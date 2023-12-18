@@ -6,7 +6,7 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.c.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-12-15
+ * @date Modified 2023-12-18
  * 
  * @copyright Copyright (c) 2023
  */
@@ -147,7 +147,33 @@ void updateKeypad(struct ConfigData *configData)
 
         if (keypadState->exactlyOneKeyPressed && keypadState->noKeysPressedPreviously)
         {
-            storeKeyPress(configData, keypadState->keyPressed);
+            // Clocking IN or OUT key was pressed previously, and we are ready to read the PIN code.
+            if (keypadConfig->currentPINState.waitingForPINInput)
+            {
+                storeKeyPress(configData, keypadState->keyPressed);
+            }
+            
+            else if (keypadState->keyPressed == keypadState->clockInKey ||
+                     keypadState->keyPressed == keypadState->clockOutKey)
+            {
+                if (keypadState->keyPressed == keypadState->clockInKey)
+                {
+                    keypadConfig->currentPINState.status = LOG_STATUS_IN;
+
+                    printf("\nWaiting for clock IN.\n");
+                }
+
+                else if (keypadState->keyPressed == keypadState->clockOutKey)
+                {
+                    
+                    keypadConfig->currentPINState.status = LOG_STATUS_OUT;
+                    
+                    printf("\nWaiting for clock OUT.\n");
+                }
+
+                keypadConfig->currentPINState.waitingForPINInput = true;
+                startTimeoutTimer(&configData->keypadConfig.currentPINState);
+            }
         }
 
         keypadState->noKeysPressedPreviously = !keypadState->anyKeysPressed;
@@ -262,26 +288,27 @@ static void storeKeyPress(struct ConfigData *configData, const char key)
 
         if (validPIN(configData->database, currentPINState->keyPresses, &userIDOfPIN))
         {
-            printf("\nCORRECT PIN! - '%s' - User ID: %d \n\n", currentPINState->keyPresses, userIDOfPIN);
+            int userPreviousStatus = -1;
 
-            turnLEDOn(&configData->LEDConfigData, false, true, false);      // Green light.
-            playSound(&configData->soundsConfig, SOUND_BEEP_SUCCESS);
+            selectUsersLatestLogStatus(configData->database, userIDOfPIN, &userPreviousStatus);
 
-            int status = -1;
-            selectUsersLatestLogStatus(configData->database, userIDOfPIN, &status);
-
-            // TODO: Allow the user to select whether they're loggin in or out.
-            // TODO: Don't play sound and turn on LED, 
-            //       before we make sure the user isn't trying to log in or out twice in a row.
-
-            if (status == LOG_STATUS_IN)
+            if (userPreviousStatus != currentPINState->status)
             {
-                insertLogRow(configData->database, userIDOfPIN, LOG_STATUS_OUT);
+                printf("\nCORRECT PIN! - '%s' - User ID: %d \n\n", currentPINState->keyPresses, userIDOfPIN);
+
+                turnLEDOn(&configData->LEDConfigData, false, true, false);      // Green light.
+                playSound(&configData->soundsConfig, SOUND_BEEP_SUCCESS);
+
+                insertLogRow(configData->database, userIDOfPIN, currentPINState->status);
             }
 
+            // User is trying to log in or out twice in a row.
             else
             {
-                insertLogRow(configData->database, userIDOfPIN, LOG_STATUS_IN);
+                printf("\nCORRECT PIN, but SAME STATUS AS PREVIOUSLY! - %s \n\n", currentPINState->keyPresses);
+
+                turnLEDOn(&configData->LEDConfigData, true, false, false);      // Red light.
+                playSound(&configData->soundsConfig, SOUND_BEEP_ERROR);
             }
         }
 
@@ -295,6 +322,7 @@ static void storeKeyPress(struct ConfigData *configData, const char key)
 
         clearPIN(&configData->keypadConfig);
         stopTimeoutTimer(currentPINState);
+        currentPINState->waitingForPINInput = false;
     }
 
     else
@@ -403,6 +431,9 @@ void initializeKeypad(struct KeypadConfig *keypadConfig)
     //////////////
 
     keypadConfig->currentPINState.nextPressIndex = 0;
+    keypadConfig->currentPINState.waitingForPINInput = false;
+    keypadConfig->currentPINState.status = 0;
+
     stopTimeoutTimer(&keypadConfig->currentPINState);
 
     // Initializes the array holding the characters used in the current PIN.
@@ -428,6 +459,9 @@ void initializeKeypad(struct KeypadConfig *keypadConfig)
     keypadConfig->keypadState.exactlyOneKeyPressed = false;
     keypadConfig->keypadState.anyKeysPressed = false;
     keypadConfig->keypadState.lastUpdateTime = getCurrentTimeInSeconds();
+
+    keypadConfig->keypadState.clockInKey = '*';
+    keypadConfig->keypadState.clockOutKey = '#';
 
     if (keypadConfig->keypadState.keysPressedPreviously == NULL) 
     {
