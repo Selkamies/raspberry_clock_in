@@ -43,8 +43,9 @@ struct KeypadState
     bool noKeysPressedPreviously;
     /** @brief Time when last keypad update was done. */
     double lastUpdateTime;
-
+    /** @brief Key used to start waiting for PIN for clocking IN. */
     char clockInKey;
+    /** @brief Key used to start waiting for PIN for clocking OUT. */
     char clockOutKey;
 };
 
@@ -61,8 +62,9 @@ struct PINState
     double lastKeyPressTime;
     /** @brief Array holding the PIN being entered. */
     char *keyPresses;
-
+    /** @brief Whether we are currently waiting for PIN input. If not, we only check for clockInKey or clockOutKey. */
     bool waitingForPINInput;
+    /** @brief The status code of the current PIN input. Clocking IN (1) or OUT (2). */
     int status;
 };
 
