@@ -181,6 +181,7 @@ void updateKeypad(struct ConfigData *configData)
         if (tooLongSinceLastKeypress(keypadConfig))
         {
             timeoutPIN(configData);
+            keypadConfig->currentPINState.waitingForPINInput = false;
         }
 
         keypadState->lastUpdateTime = getCurrentTimeInSeconds();
