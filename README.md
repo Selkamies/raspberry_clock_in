@@ -12,7 +12,7 @@ A clocking in device, where user can enter a PIN code using a keypad, and codes 
   - PIN lengths, timeout times and update intervals.
   - Default audio device or manual device id.
 
-TODO: Picture of the setup.
+![Image of the setup](images/Wiring.jpg)
 
 ### External libraries used.
 - [pigpio](https://abyz.me.uk/rpi/pigpio/), for GPIO pin handling. [GitHub link](https://github.com/joan2937/pigpio). License: [Public domain](https://github.com/joan2937/pigpio/blob/master/UNLICENCE).
