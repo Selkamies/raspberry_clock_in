@@ -7,7 +7,7 @@
  * they were already marked as present or not. Users and logs are stored in a database.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-12-11
+ * @date Modified 2023-12-20
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -38,7 +38,9 @@
 
 void mainLoop(struct ConfigData *configData)
 {
-    printf("\nMain loop starting. You may now input PIN.\n\n");
+    printf("\nMain loop starting.\n");
+    printf("You may now clock in with '%c' followed by PIN, \nor clock out with '%c' followed by PIN.\n\n", 
+        configData->keypadConfig.keypadState.clockInKey, configData->keypadConfig.keypadState.clockOutKey);
 
     // TODO: structs that hold all the globals in keypad.c and leds.c.
 
