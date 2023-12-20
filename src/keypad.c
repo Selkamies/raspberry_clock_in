@@ -6,7 +6,7 @@
  * This file contains the logic, all GPIO pin handling by pigpio is in keypad_gpio.c.
  * 
  * @date Created  2023-11-13
- * @date Modified 2023-12-18
+ * @date Modified 2023-12-20
  * 
  * @copyright Copyright (c) 2023
  */
@@ -260,8 +260,6 @@ static int loopThroughKeys(struct KeypadConfig *keypadConfig)
     return keysNowPressedCount;
 }
 
-
-
 static void storeKeyPress(struct ConfigData *configData, const char key)
 {
     // For readability.
@@ -289,10 +287,16 @@ static void storeKeyPress(struct ConfigData *configData, const char key)
         if (validPIN(configData->database, currentPINState->keyPresses, &userIDOfPIN))
         {
             int userPreviousStatus = -1;
+            bool previousStatusFound = selectUsersLatestLogStatus(configData->database, userIDOfPIN, &userPreviousStatus);
 
-            selectUsersLatestLogStatus(configData->database, userIDOfPIN, &userPreviousStatus);
+            // No previous status and IN -> ok.
+            // No previous status and OUT -> fail.
+            // Previous status and different -> ok.
+            // Previous status and same -> fail.
+            bool validAttempt = ((!previousStatusFound && currentPINState->status == LOG_STATUS_IN) ||
+                                  (previousStatusFound && currentPINState->status != userPreviousStatus));
 
-            if (userPreviousStatus != currentPINState->status)
+            if (validAttempt)
             {
                 printf("\nCORRECT PIN! - '%s' - User ID: %d \n\n", currentPINState->keyPresses, userIDOfPIN);
 
@@ -302,10 +306,10 @@ static void storeKeyPress(struct ConfigData *configData, const char key)
                 insertLogRow(configData->database, userIDOfPIN, currentPINState->status);
             }
 
-            // User is trying to log in or out twice in a row.
+            // User is trying to log in or out twice in a row, or is trying to log out with no previous logs.
             else
             {
-                printf("\nCORRECT PIN, but SAME STATUS AS PREVIOUSLY! - %s \n\n", currentPINState->keyPresses);
+                printf("\nCORRECT PIN, but REJECTED! - %s \n\n", currentPINState->keyPresses);
 
                 turnLEDOn(&configData->LEDConfigData, true, false, false);      // Red light.
                 playSound(&configData->soundsConfig, SOUND_BEEP_ERROR);
