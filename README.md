@@ -1,4 +1,4 @@
-## Cloking in device with Raspberry Pi 4 using C.
+## Clocking in device with Raspberry Pi 4 using C.
 
 A clocking in device, where user can enter a PIN code using a keypad, and codes are validated from a database. Upon valid PIN, a log entry is saved to a database. 
 
