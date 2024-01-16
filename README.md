@@ -23,5 +23,3 @@ A clocking in device, where user can enter a PIN code using a keypad, and codes 
 ### Credits
 - [Selkamies](https://github.com/Selkamies)
 - [jaakho](https://github.com/jaakho)
-
-### TODO: License.
